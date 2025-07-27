@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "333805316478",
+    "project_id": "smartfocus-f0db1",
+    "storage_bucket": "smartfocus-f0db1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:333805316478:android:e6f0c4bfd2fd79909d2b2f",
+        "android_client_info": {
+          "package_name": "com.example.cat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgizmL9gUWhvunQzi_8SSF4Og8k_Q5rhw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:333805316478:android:c1ae15ef159e32539d2b2f",
+        "android_client_info": {
+          "package_name": "com.example.smartfocus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgizmL9gUWhvunQzi_8SSF4Og8k_Q5rhw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
