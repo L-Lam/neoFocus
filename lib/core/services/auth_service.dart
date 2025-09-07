@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_service.dart';
@@ -37,7 +38,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Register with email and password
+// Register with email and password
   Future<String?> register({
     required String email,
     required String password,
@@ -50,8 +51,32 @@ class AuthService extends ChangeNotifier {
       );
 
       if (credential.user != null) {
+        // Update display name in Firebase Auth
         await credential.user!.updateDisplayName(displayName);
-        await FirebaseService.initializeUserDocument(credential.user!);
+        await credential.user!.reload();
+        _user = _auth.currentUser;
+
+        // Create user document in Firestore with the display name
+        final userDoc = FirebaseService.users.doc(credential.user!.uid);
+        await userDoc.set({
+          'uid': credential.user!.uid,
+          'email': email,
+          'displayName': displayName, // Use the provided displayName directly
+          'createdAt': FieldValue.serverTimestamp(),
+          'lastLoginAt': FieldValue.serverTimestamp(),
+          'level': 1,
+          'totalFocusMinutes': 0,
+          'totalXP': 0,
+          'currentStreak': 0,
+          'longestStreak': 0,
+          'achievements': [],
+          'preferences': {
+            'focusDuration': 25,
+            'breakDuration': 5,
+            'longBreakDuration': 15,
+            'notificationsEnabled': true,
+          },
+        });
       }
 
       return null; // Success
@@ -59,6 +84,7 @@ class AuthService extends ChangeNotifier {
       return _handleAuthException(e);
     }
   }
+
 
   // Sign out
   Future<void> signOut() async {

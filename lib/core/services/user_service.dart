@@ -151,8 +151,9 @@ class UserService extends ChangeNotifier {
     if (_currentUser == null) return;
 
     final updates = <String, dynamic>{};
-    if (totalFocusMinutes != null)
+    if (totalFocusMinutes != null) {
       updates['totalFocusMinutes'] = totalFocusMinutes;
+    }
     if (currentStreak != null) updates['currentStreak'] = currentStreak;
     if (longestStreak != null) updates['longestStreak'] = longestStreak;
     if (level != null) updates['level'] = level;

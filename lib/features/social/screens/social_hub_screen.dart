@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/responsive_helper.dart';
+import '../widgets/social_hub_timer.dart';  // ADD THIS IMPORT
 import 'friends_screen.dart';
 import 'challenges_screen.dart';
 import 'leaderboard_screen.dart';
@@ -39,6 +40,18 @@ class _SocialHubScreenState extends State<SocialHubScreen> {
 
     if (isMobile) {
       return Scaffold(
+        appBar: AppBar(  // ADD THIS ENTIRE APPBAR
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          title: Text(
+            'Social Hub',
+            style: AppTextStyles.heading3,
+          ),
+          actions: [
+            const SocialHubTimerWidget(),
+            SizedBox(width: 16.w),
+          ],
+        ),
         body: _screens[_selectedIndex],
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
@@ -63,14 +76,14 @@ class _SocialHubScreenState extends State<SocialHubScreen> {
             ),
             unselectedLabelStyle: AppTextStyles.caption,
             items:
-                _navItems
-                    .map(
-                      (item) => BottomNavigationBarItem(
-                        icon: Icon(item.icon),
-                        label: item.label,
-                      ),
-                    )
-                    .toList(),
+            _navItems
+                .map(
+                  (item) => BottomNavigationBarItem(
+                icon: Icon(item.icon),
+                label: item.label,
+              ),
+            )
+                .toList(),
           ),
         ),
       );
@@ -94,12 +107,18 @@ class _SocialHubScreenState extends State<SocialHubScreen> {
                 SizedBox(height: 32.h),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.w),
-                  child: Text('Social Hub', style: AppTextStyles.heading2),
+                  child: Row(  // MODIFY THIS SECTION
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Social Hub', style: AppTextStyles.heading2),
+                      const SocialHubTimerWidget(),  // ADD TIMER HERE TOO
+                    ],
+                  ),
                 ),
                 SizedBox(height: 32.h),
                 ...List.generate(
                   _navItems.length,
-                  (index) => _SideNavItem(
+                      (index) => _SideNavItem(
                     icon: _navItems[index].icon,
                     label: _navItems[index].label,
                     isSelected: _selectedIndex == index,
@@ -146,9 +165,9 @@ class _SideNavItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary.withOpacity(0.1) : null,
           border:
-              isSelected
-                  ? Border(left: BorderSide(color: AppColors.primary, width: 4))
-                  : null,
+          isSelected
+              ? Border(left: BorderSide(color: AppColors.primary, width: 4))
+              : null,
         ),
         child: Row(
           children: [
@@ -171,3 +190,5 @@ class _SideNavItem extends StatelessWidget {
     );
   }
 }
+
+

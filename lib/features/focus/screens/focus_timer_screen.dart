@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/models/focus_session_model.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/focus_session_service.dart';
+import '../../../core/services/firebase_service.dart';
 import '../../../core/utils/responsive_helper.dart';
 import '../../../widgets/app_button.dart';
 import '../widgets/timer_display.dart';
@@ -15,12 +18,15 @@ import '../widgets/pomodoro_progress.dart';
 import 'session_complete_dialog.dart';
 import 'focus_lock_screen.dart';
 
+
 class FocusTimerScreen extends StatefulWidget {
   const FocusTimerScreen({super.key});
+
 
   @override
   State<FocusTimerScreen> createState() => _FocusTimerScreenState();
 }
+
 
 class _FocusTimerScreenState extends State<FocusTimerScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
@@ -31,14 +37,23 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
   late AnimationController _pulseAnimationController;
   late Animation<double> _pulseAnimation;
 
+
+  // XP tracking variables
+  Timer? _xpUpdateTimer;
+  double _currentXP = 0.0;
+  int _lastSavedXP = 0;
+
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _sessionService = Provider.of<FocusSessionService>(context, listen: false);
 
+
     // Listen for session completion
     _sessionService.addListener(_checkSessionCompletion);
+
 
     // Initialize animations
     _backgroundAnimationController = AnimationController(
@@ -46,10 +61,12 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
       vsync: this,
     )..repeat();
 
+
     _pulseAnimationController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
+
 
     _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
       CurvedAnimation(
@@ -58,11 +75,18 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
       ),
     );
 
+
     _pulseAnimationController.repeat(reverse: true);
+
+
+    // Start XP tracking if session is active
+    _startXPTracking();
   }
+
 
   @override
   void dispose() {
+    _xpUpdateTimer?.cancel();
     _sessionService.removeListener(_checkSessionCompletion);
     _backgroundAnimationController.dispose();
     _pulseAnimationController.dispose();
@@ -70,9 +94,79 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
     super.dispose();
   }
 
+
+  void _startXPTracking() {
+    _xpUpdateTimer?.cancel();
+
+
+    if (_sessionService.currentSession != null) {
+      // Update XP every second
+      _xpUpdateTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (_sessionService.currentSession != null &&
+            _sessionService.currentSession!.type == SessionType.focus) {
+          setState(() {
+            // Calculate elapsed time
+            final elapsedSeconds = _sessionService.currentSession!.duration * 60 -
+                _sessionService.currentSession!.remainingSeconds;
+            _currentXP = elapsedSeconds / 60.0; // 1 XP per minute
+          });
+
+
+          // Save to Firestore when reaching whole numbers
+          final currentXPInt = _currentXP.floor();
+          if (currentXPInt > _lastSavedXP) {
+            _updateUserXP(currentXPInt - _lastSavedXP);
+            _lastSavedXP = currentXPInt;
+          }
+        }
+      });
+    }
+  }
+
+
+  Future<void> _updateUserXP(int xpIncrement) async {
+    if (xpIncrement <= 0) return;
+
+
+    final userDoc = await FirebaseService.currentUserDoc!.get();
+    final userData = userDoc.data() as Map<String, dynamic>;
+    final currentTotalXP = userData['totalXP'] ?? 0;
+    final newTotalXP = currentTotalXP + xpIncrement;
+    final newLevel = (newTotalXP / 100).floor() + 1;
+
+
+    await FirebaseService.currentUserDoc!.update({
+      'totalXP': FieldValue.increment(xpIncrement),
+      'level': newLevel,
+    });
+
+
+    // Update session with earned XP if we have session tracking
+    // Note: This will depend on how your FocusSessionService stores sessions
+    // You may need to modify this based on your actual implementation
+    try {
+      // Get the current active session from Firestore
+      final activeSessions = await FirebaseService.currentUserDoc!
+          .collection('sessions')
+          .where('isActive', isEqualTo: true)
+          .limit(1)
+          .get();
+
+
+      if (activeSessions.docs.isNotEmpty) {
+        await activeSessions.docs.first.reference.update({
+          'earnedXP': _currentXP,
+        });
+      }
+    } catch (e) {
+      // Handle error silently - XP tracking shouldn't break the timer
+      print('Error updating session XP: $e');
+    }
+  }
+
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Handle app lifecycle to pause timer when app goes to background
     if (state == AppLifecycleState.paused) {
       if (_sessionService.isTimerRunning) {
         _sessionService.pauseSession();
@@ -80,16 +174,23 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
     }
   }
 
+
   void _checkSessionCompletion() {
     final session = _sessionService.currentSession;
     if (session == null && _wasSessionActive) {
       // Session just completed
+      final finalXP = _currentXP.floor();
+      _xpUpdateTimer?.cancel();
+      _currentXP = 0.0;
+      _lastSavedXP = 0;
+
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           SessionCompleteDialog.show(
             context,
             _lastSessionType,
-            xpEarned: _lastSessionType == SessionType.focus ? 20 : 0,
+            xpEarned: _lastSessionType == SessionType.focus ? finalXP : 0,
           );
         }
       });
@@ -97,8 +198,12 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
     _wasSessionActive = session != null;
     if (session != null) {
       _lastSessionType = session.type;
+      if (_xpUpdateTimer == null || !_xpUpdateTimer!.isActive) {
+        _startXPTracking();
+      }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +212,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
     final currentSession = sessionService.currentSession;
     final screenPadding = ResponsiveHelper.getScreenPadding(context);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -137,6 +243,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                 );
               },
             ),
+
 
           SafeArea(
             child: Column(
@@ -169,7 +276,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                         'Focus Timer',
                         style: AppTextStyles.heading3.copyWith(
                           color:
-                              Theme.of(context).textTheme.headlineSmall?.color,
+                          Theme.of(context).textTheme.headlineSmall?.color,
                         ),
                       ),
                       IconButton(
@@ -198,6 +305,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                   ),
                 ),
 
+
                 Expanded(
                   child: Padding(
                     padding: screenPadding,
@@ -205,7 +313,8 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                       children: [
                         SizedBox(height: 20.h),
 
-                        // Show message if session is active
+
+                        // Show message if session is active with XP info
                         if (currentSession != null) ...[
                           Container(
                             padding: EdgeInsets.all(16.w),
@@ -226,7 +335,9 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                                 SizedBox(width: 12.w),
                                 Expanded(
                                   child: Text(
-                                    'Session is running in the background',
+                                    currentSession.type == SessionType.focus
+                                        ? 'Earning ${_currentXP.toStringAsFixed(1)} XP'
+                                        : 'Take a break! No XP during breaks',
                                     style: AppTextStyles.body.copyWith(
                                       color: AppColors.primary,
                                     ),
@@ -238,12 +349,14 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                           SizedBox(height: 30.h),
                         ],
 
+
                         // Pomodoro Progress Indicator
                         PomodoroProgress(
                           currentPomodoro: currentSession?.pomodoroCount ?? 0,
                           totalPomodoros: 4,
                         ),
                         SizedBox(height: 30.h),
+
 
                         // Session Type Indicator with animation
                         AnimatedScale(
@@ -255,126 +368,143 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                           ),
                         ),
 
+
                         // Timer Display or Start Prompt
                         Expanded(
                           child: Center(
                             child:
-                                currentSession != null
-                                    ? Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                            currentSession != null
+                                ? Column(
+                              mainAxisAlignment:
+                              MainAxisAlignment.center,
+                              children: [
+                                // Mini timer display with XP
+                                Container(
+                                  width: 220.w,
+                                  height: 220.w,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.primary
+                                        .withOpacity(0.1),
+                                    border: Border.all(
+                                      color: AppColors.primary
+                                          .withOpacity(0.3),
+                                      width: 3,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        // Mini timer display - FIXED OVERFLOW
-                                        Container(
-                                          width: 220.w, // Increased from 180.w
-                                          height: 220.w, // Increased from 180.w
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: AppColors.primary
-                                                .withOpacity(0.1),
-                                            border: Border.all(
-                                              color: AppColors.primary
-                                                  .withOpacity(0.3),
-                                              width: 3,
-                                            ),
+                                        Icon(
+                                          Icons.timer,
+                                          size: 36.sp,
+                                          color: AppColors.primary,
+                                        ),
+                                        SizedBox(height: 12.h),
+                                        Text(
+                                          _formatTime(
+                                            currentSession
+                                                .remainingSeconds,
                                           ),
-                                          child: Center(
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  Icons.timer,
-                                                  size:
-                                                      36.sp, // Reduced from 40.sp
-                                                  color: AppColors.primary,
-                                                ),
-                                                SizedBox(
-                                                  height: 12.h,
-                                                ), // Increased from 8.h
-                                                Text(
-                                                  _formatTime(
-                                                    currentSession
-                                                        .remainingSeconds,
-                                                  ),
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                        36.sp, // Adjusted for better fit
-                                                    fontWeight: FontWeight.w600,
-                                                    color: AppColors.primary,
-                                                    fontFamily: 'monospace',
-                                                    letterSpacing:
-                                                        2.0, // Added letter spacing
-                                                  ),
-                                                ),
-                                                SizedBox(height: 4.h),
-                                                Text(
-                                                  'remaining',
-                                                  style: AppTextStyles.caption
-                                                      .copyWith(
-                                                        color:
-                                                            AppColors.primary,
-                                                      ),
-                                                ),
-                                              ],
-                                            ),
+                                          style: TextStyle(
+                                            fontSize: 36.sp,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.primary,
+                                            fontFamily: 'monospace',
+                                            letterSpacing: 2.0,
                                           ),
                                         ),
-                                      ],
-                                    )
-                                    : AnimatedBuilder(
-                                      animation: _pulseAnimation,
-                                      builder: (context, child) {
-                                        return Transform.scale(
-                                          scale: _pulseAnimation.value,
-                                          child: Container(
-                                            width: 220.w,
-                                            height: 220.w,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  AppColors.primary.withOpacity(
-                                                    0.1,
-                                                  ),
-                                                  AppColors.primaryLight
-                                                      .withOpacity(0.1),
-                                                ],
-                                              ),
-                                              border: Border.all(
-                                                color: AppColors.primary
-                                                    .withOpacity(0.3),
-                                                width: 3,
-                                              ),
+                                        SizedBox(height: 4.h),
+                                        Text(
+                                          'remaining',
+                                          style: AppTextStyles.caption
+                                              .copyWith(
+                                            color:
+                                            AppColors.primary,
+                                          ),
+                                        ),
+                                        if (currentSession.type == SessionType.focus && _currentXP > 0) ...[
+                                          SizedBox(height: 8.h),
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 12.w,
+                                              vertical: 4.h,
                                             ),
-                                            child: Center(
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    Icons.play_circle_outline,
-                                                    size: 60.sp,
-                                                    color: AppColors.primary,
-                                                  ),
-                                                  SizedBox(height: 12.h),
-                                                  Text(
-                                                    'Ready to Focus',
-                                                    style: AppTextStyles.body
-                                                        .copyWith(
-                                                          color:
-                                                              AppColors.primary,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                  ),
-                                                ],
+                                            decoration: BoxDecoration(
+                                              color: AppColors.success.withOpacity(0.1),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Text(
+                                              '+${_currentXP.toStringAsFixed(1)} XP',
+                                              style: AppTextStyles.caption.copyWith(
+                                                color: AppColors.success,
+                                                fontWeight: FontWeight.w600,
                                               ),
                                             ),
                                           ),
-                                        );
-                                      },
+                                        ],
+                                      ],
                                     ),
+                                  ),
+                                ),
+                              ],
+                            )
+                                : AnimatedBuilder(
+                              animation: _pulseAnimation,
+                              builder: (context, child) {
+                                return Transform.scale(
+                                  scale: _pulseAnimation.value,
+                                  child: Container(
+                                    width: 220.w,
+                                    height: 220.w,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          AppColors.primary.withOpacity(
+                                            0.1,
+                                          ),
+                                          AppColors.primaryLight
+                                              .withOpacity(0.1),
+                                        ],
+                                      ),
+                                      border: Border.all(
+                                        color: AppColors.primary
+                                            .withOpacity(0.3),
+                                        width: 3,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.play_circle_outline,
+                                            size: 60.sp,
+                                            color: AppColors.primary,
+                                          ),
+                                          SizedBox(height: 12.h),
+                                          Text(
+                                            'Ready to Focus',
+                                            style: AppTextStyles.body
+                                                .copyWith(
+                                              color:
+                                              AppColors.primary,
+                                              fontWeight:
+                                              FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
+
 
                         // Stats Cards
                         if (currentSession == null)
@@ -403,7 +533,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                                 ),
                                 child: Row(
                                   mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
+                                  MainAxisAlignment.spaceAround,
                                   children: [
                                     _buildStatItem(
                                       icon: Icons.today,
@@ -427,7 +557,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                                     ),
                                     _buildStatItem(
                                       icon: Icons.star,
-                                      value: '${count * 20}',
+                                      value: '${count * 25}', // Assuming average 25 XP per session
                                       label: 'XP Earned',
                                     ),
                                   ],
@@ -436,7 +566,9 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                             },
                           ),
 
+
                         if (currentSession == null) SizedBox(height: 30.h),
+
 
                         // Control Buttons with better styling
                         _buildControlButtons(
@@ -445,6 +577,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                           authService.user?.uid ?? '',
                         ),
                         SizedBox(height: 30.h),
+
 
                         // Tips Section with animation
                         AnimatedContainer(
@@ -462,6 +595,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
       ),
     );
   }
+
 
   Widget _buildStatItem({
     required IconData icon,
@@ -484,11 +618,12 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
     );
   }
 
+
   Widget _buildControlButtons(
-    FocusSessionService sessionService,
-    FocusSession? currentSession,
-    String userId,
-  ) {
+      FocusSessionService sessionService,
+      FocusSession? currentSession,
+      String userId,
+      ) {
     if (currentSession == null) {
       // No active session - Beautiful start button
       return Container(
@@ -519,6 +654,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
       );
     }
 
+
     // If session is active, show "View Session" button
     return Column(
       children: [
@@ -536,6 +672,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
         ),
         SizedBox(height: 16.h),
 
+
         TextButton(
           onPressed: () {
             Navigator.push(
@@ -545,30 +682,37 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
           },
           child: Text(
             'View Active Session',
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary),
           ),
         ),
       ],
     );
   }
 
+
   Widget _buildTipsSection(SessionType? sessionType) {
     String tip;
     IconData icon;
     Color color;
 
+
     if (sessionType == null) {
       tip = 'Ready to focus? Start a 25-minute session!';
       icon = Icons.lightbulb_outline;
       color = AppColors.primary;
+    } else if (sessionType == SessionType.focus) {
+      tip = 'You\'re earning ${_currentXP.toStringAsFixed(1)} XP! Keep going!';
+      icon = Icons.trending_up;
+      color = AppColors.success;
     } else {
-      tip =
-          'Your session continues in the background. Tap "View Active Session" to see the timer.';
-      icon = Icons.info_outline;
-      color = AppColors.primary;
+      tip = 'Take a break! You\'ve earned it.';
+      icon = Icons.coffee;
+      color = AppColors.warning;
     }
 
+
     return Container(
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
@@ -606,43 +750,48 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
     );
   }
 
+
   String _formatTime(int seconds) {
     final minutes = seconds ~/ 60;
     final secs = seconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
+
   void _showStopConfirmation(FocusSessionService sessionService) {
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text('Stop Session?', style: AppTextStyles.heading3),
+        content: Text(
+          'Are you sure you want to stop this session? Your progress will be lost.',
+          style: AppTextStyles.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Continue',
+              style: TextStyle(color: AppColors.textSecondary),
             ),
-            title: Text('Stop Session?', style: AppTextStyles.heading3),
-            content: Text(
-              'Are you sure you want to stop this session? Your progress will be lost.',
-              style: AppTextStyles.body,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Continue',
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  sessionService.stopSession();
-                },
-                style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                child: const Text('Stop'),
-              ),
-            ],
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              sessionService.stopSession();
+            },
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Stop'),
+          ),
+        ],
+      ),
     );
   }
 }
+
+
+
