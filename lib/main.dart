@@ -13,6 +13,7 @@ import 'core/services/focus_session_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/focus_detection_service.dart';
 import 'core/services/focus_state_manager.dart';
+import 'core/services/gacha_service.dart';
 import 'core/constants/app_colors.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/home/screens/home_screen.dart';
@@ -66,6 +67,15 @@ class MyApp extends StatelessWidget {
               update:
                   (context, detection, previous) =>
                       previous ?? FocusStateManager(detection),
+            ),
+            ChangeNotifierProxyProvider<UserService, GachaService>(
+              create:
+                  (context) => GachaService(
+                    Provider.of<UserService>(context, listen: false),
+                  ),
+              update:
+                  (context, userService, previous) =>
+                      previous ?? GachaService(userService),
             ),
           ],
           child: MaterialApp(

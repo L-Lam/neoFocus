@@ -51,7 +51,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Scaffold(body: Center(child: LoadingIndicator()));
     }
 
-    final levelTitle = TaskService.getLevelTitle(user.level);
     final screenPadding = ResponsiveHelper.getScreenPadding(context);
 
     return Scaffold(
@@ -102,14 +101,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       SizedBox(height: 12.h),
                       Text(
-                        user.displayName,
+                        'Hello, ${user.displayName}!',
                         style: AppTextStyles.heading3.copyWith(
                           color: Colors.white,
                         ),
                       ),
                       SizedBox(height: 4.h),
                       Text(
-                        'Level ${user.level} - $levelTitle',
+                        'Welcome to your profile',
                         style: AppTextStyles.bodySmall.copyWith(
                           color: Colors.white.withOpacity(0.9),
                         ),
@@ -197,10 +196,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             Expanded(
                               child: StatsCard(
-                                title: 'Total XP',
-                                value: '${stats['totalXP'] ?? 0}',
-                                icon: Icons.star,
-                                color: AppColors.warning,
+                                title: 'ELO Rating',
+                                value: '${user.eloRating}',
+                                icon: Icons.trending_up,
+                                color: AppColors.primary,
                               ),
                             ),
                             SizedBox(width: 12.w),
@@ -211,7 +210,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   stats['totalFocusMinutes'] ?? 0,
                                 ),
                                 icon: Icons.timer,
-                                color: AppColors.primary,
+                                color: AppColors.success,
                               ),
                             ),
                           ],

@@ -6,8 +6,6 @@ class Task {
   final String title;
   final String? description;
   final bool isCompleted;
-  final bool givesXP;
-  final int xpReward;
   final DateTime createdAt;
   final DateTime? completedAt;
   final DateTime scheduledFor;
@@ -18,8 +16,6 @@ class Task {
     required this.title,
     this.description,
     required this.isCompleted,
-    required this.givesXP,
-    required this.xpReward,
     required this.createdAt,
     this.completedAt,
     required this.scheduledFor,
@@ -32,8 +28,6 @@ class Task {
       title: map['title'] ?? '',
       description: map['description'],
       isCompleted: map['isCompleted'] ?? false,
-      givesXP: map['givesXP'] ?? false,
-      xpReward: map['xpReward'] ?? 0,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       completedAt:
           map['completedAt'] != null
@@ -49,8 +43,6 @@ class Task {
       'title': title,
       'description': description,
       'isCompleted': isCompleted,
-      'givesXP': givesXP,
-      'xpReward': xpReward,
       'createdAt': Timestamp.fromDate(createdAt),
       'completedAt':
           completedAt != null ? Timestamp.fromDate(completedAt!) : null,
@@ -64,8 +56,6 @@ class Task {
     String? title,
     String? description,
     bool? isCompleted,
-    bool? givesXP,
-    int? xpReward,
     DateTime? createdAt,
     DateTime? completedAt,
     DateTime? scheduledFor,
@@ -76,8 +66,6 @@ class Task {
       title: title ?? this.title,
       description: description ?? this.description,
       isCompleted: isCompleted ?? this.isCompleted,
-      givesXP: givesXP ?? this.givesXP,
-      xpReward: xpReward ?? this.xpReward,
       createdAt: createdAt ?? this.createdAt,
       completedAt: completedAt ?? this.completedAt,
       scheduledFor: scheduledFor ?? this.scheduledFor,
