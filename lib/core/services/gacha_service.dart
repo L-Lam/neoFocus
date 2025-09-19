@@ -2,13 +2,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/gacha_item.dart';
-import '../models/user_model.dart';
 import 'firebase_service.dart';
-import 'user_service.dart';
 
 class GachaService extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseService.firestore;
-  final UserService _userService;
   final Random _random = Random();
 
   final Map<String, List<GachaItem>> _rarityItems = {
@@ -26,7 +23,7 @@ class GachaService extends ChangeNotifier {
   List<GachaItem> get userItems => _userItems;
   bool get isLoading => _isLoading;
 
-  GachaService(this._userService) {
+  GachaService() {
     _initializeGachaItems();
   }
 
@@ -38,7 +35,7 @@ class GachaService extends ChangeNotifier {
         id: '1',
         name: 'Suki',
         description:
-            'Utterly heartbroken his owners misspelled his name. Eats '
+        'Utterly heartbroken his owners misspelled his name. Eats '
             'excessively in order to cope with the pain.',
         imageUrl: 'assets/images/pocket_watch.png',
         rarity: GachaRarity.common,
@@ -48,7 +45,7 @@ class GachaService extends ChangeNotifier {
         id: '2',
         name: 'Kurow',
         description:
-            'She is a super intelligent, but lazy, RAVEN. Yes, her '
+        'She is a super intelligent, but lazy, RAVEN. Yes, her '
             'owners misclassified her. Cool name though.',
         imageUrl: 'assets/images/brass_compass.png',
         rarity: GachaRarity.common,
@@ -58,7 +55,7 @@ class GachaService extends ChangeNotifier {
         id: '3',
         name: 'Little Bell',
         description:
-            'Despite her name, she is actually huge! She is also a '
+        'Despite her name, she is actually huge! She is also a '
             'great hugger when she is cleaned.',
         imageUrl: 'assets/images/music_box.png',
         rarity: GachaRarity.common,
@@ -72,7 +69,7 @@ class GachaService extends ChangeNotifier {
         id: '4',
         name: 'Queen',
         description:
-            'Just to clarify, it is a male... He used to be a killer, '
+        'Just to clarify, it is a male... He used to be a killer, '
             'but became a changed cat after losing a life. Now, he passes his '
             'days sleeping.',
         imageUrl: '',
@@ -83,7 +80,7 @@ class GachaService extends ChangeNotifier {
         id: '5',
         name: 'Torri',
         description:
-            'Well known in her community as \'Torri the Torrent\' for '
+        'Well known in her community as \'Torri the Torrent\' for '
             'her rapid and destructive insults. Nobody knows this, but she '
             'is also a great cook!',
         imageUrl: 'assets/images/music_box.png',
@@ -94,7 +91,7 @@ class GachaService extends ChangeNotifier {
         id: '6',
         name: 'Ultimate Supreme Annihilation',
         description:
-            'Holds parties every night in his nest, though they always '
+        'Holds parties every night in his nest, though they always '
             'end up badly due to his short temper. He is also addicted to Diet '
             '"Bird" Coke.',
         imageUrl: '',
@@ -109,7 +106,7 @@ class GachaService extends ChangeNotifier {
         id: '7',
         name: 'Love Dream',
         description:
-            'He is very much in love. Secretly takes dance classes in '
+        'He is very much in love. Secretly takes dance classes in '
             'hopes of attract his crush one day.',
         imageUrl: '',
         rarity: GachaRarity.epic,
@@ -119,7 +116,7 @@ class GachaService extends ChangeNotifier {
         id: '8',
         name: 'Moonlight',
         description:
-            'A social recluse. He doesn\'t like humans because they '
+        'A social recluse. He doesn\'t like humans because they '
             'don\'t taste good... and also because they have guns...',
         imageUrl: '',
         rarity: GachaRarity.epic,
@@ -133,7 +130,7 @@ class GachaService extends ChangeNotifier {
         id: '9',
         name: 'Winter Wind',
         description:
-            'She is the princess of the snow, wielding a bone-chilling '
+        'She is the princess of the snow, wielding a bone-chilling '
             'gaze and an ice-cold demeanor. She is totally not just awkward!',
         imageUrl: '',
         rarity: GachaRarity.legendary,
@@ -143,7 +140,7 @@ class GachaService extends ChangeNotifier {
         id: '10',
         name: 'Big Brother',
         description:
-            'Perched on the highest branch in the darkest night, he '
+        'Perched on the highest branch in the darkest night, he '
             'analyzes everything with utmost clarity. Hunts multiple times every '
             'night for his 7 baby siblings.',
         imageUrl: '',
@@ -153,14 +150,14 @@ class GachaService extends ChangeNotifier {
     ];
     _availableItems =
         _rarityItems['common']! +
-        _rarityItems['rare']! +
-        _rarityItems['epic']! +
-        _rarityItems['legendary']!;
+            _rarityItems['rare']! +
+            _rarityItems['epic']! +
+            _rarityItems['legendary']!;
   }
 
   // Perform a single gacha pull (free)
   Future<GachaItem?> performSinglePull() async {
-    final user = _userService.currentUser;
+    final user = FirebaseService.auth.currentUser;
     if (user == null) {
       return null;
     }
@@ -188,7 +185,7 @@ class GachaService extends ChangeNotifier {
 
   // Perform a 10-pull (free)
   Future<List<GachaItem>> performMultiPull() async {
-    final user = _userService.currentUser;
+    final user = FirebaseService.auth.currentUser;
     if (user == null) return [];
 
     _isLoading = true;
@@ -238,14 +235,14 @@ class GachaService extends ChangeNotifier {
 
     // Fallback to first common item
     return _availableItems.firstWhere(
-      (item) => item.rarity == GachaRarity.common,
+          (item) => item.rarity == GachaRarity.common,
       orElse: () => _availableItems.first,
     );
   }
 
   // Add item to user's collection
   Future<void> _addItemToUser(GachaItem item) async {
-    final user = _userService.currentUser;
+    final user = FirebaseService.auth.currentUser;
     if (user == null) return;
 
     final ownedItem = item.copyWith(isOwned: true, obtainedAt: DateTime.now());
@@ -268,16 +265,16 @@ class GachaService extends ChangeNotifier {
 
   // Load user's gacha items
   Future<void> loadUserItems() async {
-    final user = _userService.currentUser;
+    final user = FirebaseService.auth.currentUser;
     if (user == null) return;
 
     try {
       final snapshot =
-          await _firestore
-              .collection('users')
-              .doc(user.uid)
-              .collection('gacha_items')
-              .get();
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('gacha_items')
+          .get();
 
       _userItems =
           snapshot.docs
@@ -292,12 +289,12 @@ class GachaService extends ChangeNotifier {
 
   // Check if user can pull (always true since it's free)
   bool canAffordSinglePull() {
-    final user = _userService.currentUser;
+    final user = FirebaseService.auth.currentUser;
     return user != null;
   }
 
   bool canAffordMultiPull() {
-    final user = _userService.currentUser;
+    final user = FirebaseService.auth.currentUser;
     return user != null;
   }
 

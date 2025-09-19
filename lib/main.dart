@@ -47,36 +47,23 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => UserService()),
             ChangeNotifierProvider(create: (_) => TaskService()),
             ChangeNotifierProxyProvider<UserService, FocusSessionService>(
-              create:
-                  (context) => FocusSessionService(
-                    Provider.of<UserService>(context, listen: false),
-                  ),
-              update:
-                  (context, userService, previous) =>
-                      previous ?? FocusSessionService(userService),
+              create: (context) => FocusSessionService(
+                Provider.of<UserService>(context, listen: false),
+              ),
+              update: (context, userService, previous) =>
+              previous ?? FocusSessionService(userService),
             ),
             ChangeNotifierProvider(create: (_) => FocusDetectionService()),
-            ChangeNotifierProxyProvider<
-              FocusDetectionService,
-              FocusStateManager
-            >(
-              create:
-                  (context) => FocusStateManager(
-                    Provider.of<FocusDetectionService>(context, listen: false),
-                  ),
-              update:
-                  (context, detection, previous) =>
-                      previous ?? FocusStateManager(detection),
+            ChangeNotifierProxyProvider<  // Fixed: Added opening
+                FocusDetectionService,
+                FocusStateManager>(
+              create: (context) => FocusStateManager(
+                Provider.of<FocusDetectionService>(context, listen: false),
+              ),
+              update: (context, detection, previous) =>
+              previous ?? FocusStateManager(detection),
             ),
-            ChangeNotifierProxyProvider<UserService, GachaService>(
-              create:
-                  (context) => GachaService(
-                    Provider.of<UserService>(context, listen: false),
-                  ),
-              update:
-                  (context, userService, previous) =>
-                      previous ?? GachaService(userService),
-            ),
+            ChangeNotifierProvider(create: (_) => GachaService()),
           ],
           child: MaterialApp(
             title: 'Focus Hero',

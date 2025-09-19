@@ -14,6 +14,7 @@ import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/elo_rating_card.dart';
 import '../../analytics/screens/analytics_screen.dart';
 import '../../focus/screens/focus_timer_screen.dart';
+import '../../profile/screens/profile_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../social/screens/challenges_screen.dart';
 import '../../gacha/screens/gacha_screen.dart';
@@ -51,6 +52,16 @@ class HomeScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person),
+            color: AppColors.textPrimary,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
               );
             },
           ),

@@ -16,7 +16,8 @@ class WeeklyFocusInfoCard extends StatelessWidget {
         final user = userService.currentUser;
         if (user == null) return const SizedBox.shrink();
 
-        final eloRating = user.eloRating;
+        // Fix: Extract the rating value from the EloRating object
+        final eloRating = user.eloRating.rating; // Changed this line
         final currentRank = RankSystem.getRankFromRating(eloRating);
         final nextRank = RankSystem.getNextRank(eloRating);
 
@@ -27,7 +28,7 @@ class WeeklyFocusInfoCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppConstants.defaultRadius),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -82,7 +83,7 @@ class WeeklyFocusInfoCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
+                    color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -136,7 +137,7 @@ class WeeklyFocusInfoCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
+                  color: AppColors.success.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(

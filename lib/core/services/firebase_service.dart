@@ -1,5 +1,5 @@
 // Replace lib/core/services/firebase_service.dart with this version
-import 'package:cat/core/services/task_service.dart';
+import '/core/services/task_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
