@@ -1,15 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/elo_rating.dart';
 import 'firebase_service.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseService.auth;
   User? _user;
 
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
   User? get user => _user;
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   AuthService() {
     _auth.authStateChanges().listen((User? user) {
@@ -39,7 +38,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Register with email and password
+// Register with email and password
   Future<String?> register({
     required String email,
     required String password,
@@ -50,6 +49,7 @@ class AuthService extends ChangeNotifier {
         email: email,
         password: password,
       );
+
       if (credential.user != null) {
         // Update display name in Firebase Auth
         await credential.user!.updateDisplayName(displayName);
@@ -64,8 +64,9 @@ class AuthService extends ChangeNotifier {
           'displayName': displayName, // Use the provided displayName directly
           'createdAt': FieldValue.serverTimestamp(),
           'lastLoginAt': FieldValue.serverTimestamp(),
-          'eloRating': 1000, // Start with 1000 ELO (Beginner rank)
+          'level': 1,
           'totalFocusMinutes': 0,
+          'totalXP': 0,
           'currentStreak': 0,
           'longestStreak': 0,
           'achievements': [],
@@ -77,11 +78,13 @@ class AuthService extends ChangeNotifier {
           },
         });
       }
+
       return null; // Success
     } on FirebaseAuthException catch (e) {
       return _handleAuthException(e);
     }
   }
+
 
   // Sign out
   Future<void> signOut() async {

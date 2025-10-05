@@ -114,6 +114,51 @@ class TaskItem extends StatelessWidget {
                 ],
               ),
             ),
+
+            // XP badge
+            if (task.givesXP) ...[
+              SizedBox(width: 8.w),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color:
+                      task.isCompleted
+                          ? AppColors.success.withOpacity(0.1)
+                          : AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppConstants.smallRadius),
+                  border: Border.all(
+                    color:
+                        task.isCompleted
+                            ? AppColors.success.withOpacity(0.3)
+                            : AppColors.primary.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.star,
+                      size: 14.sp,
+                      color:
+                          task.isCompleted
+                              ? AppColors.success
+                              : AppColors.primary,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      '+${task.xpReward} XP',
+                      style: AppTextStyles.caption.copyWith(
+                        color:
+                            task.isCompleted
+                                ? AppColors.success
+                                : AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
-import '../models/elo_rating.dart';
 import 'firebase_service.dart';
 
 class UserService extends ChangeNotifier {
@@ -157,60 +156,12 @@ class UserService extends ChangeNotifier {
     }
     if (currentStreak != null) updates['currentStreak'] = currentStreak;
     if (longestStreak != null) updates['longestStreak'] = longestStreak;
+    if (level != null) updates['level'] = level;
+    if (totalXP != null) updates['totalXP'] = totalXP;
 
     if (updates.isNotEmpty) {
       await updateUserData(updates);
     }
-  }
-
-  // Update ELO rating
-  Future<void> updateEloRating(EloRating newRating) async {
-    if (_currentUser == null) return;
-
-    final updates = <String, dynamic>{'eloRating': newRating.toMap()};
-
-    await updateUserData(updates);
-  }
-
-  // Add focus minutes to weekly total
-  Future<void> addWeeklyFocusTime(int minutes) async {
-    final user = _currentUser;
-    if (user == null) return;
-
-    // Update weekly focus time
-    final updatedRating = WeeklyEloCalculator.updateWeeklyFocus(
-      user.eloRating,
-      minutes,
-    );
-
-    await updateEloRating(updatedRating);
-
-    // Check if it's time for weekly rating update
-    if (WeeklyEloCalculator.shouldUpdateRating(updatedRating)) {
-      await _performWeeklyRatingUpdate();
-    }
-  }
-
-  // Perform weekly rating calculation
-  Future<void> _performWeeklyRatingUpdate() async {
-    final user = _currentUser;
-    if (user == null) return;
-
-    // Calculate new rating based on weekly focus time
-    final newRating = WeeklyEloCalculator.calculateWeeklyRating(
-      user.eloRating,
-      user.eloRating.weeklyFocusMinutes,
-    );
-
-    // Reset weekly focus time for next week
-    final resetRating = WeeklyEloCalculator.resetWeeklyFocus(newRating);
-
-    await updateEloRating(resetRating);
-  }
-
-  // Manual weekly rating update (can be called by admin or scheduled job)
-  Future<void> forceWeeklyRatingUpdate() async {
-    await _performWeeklyRatingUpdate();
   }
 
   // Get user statistics stream

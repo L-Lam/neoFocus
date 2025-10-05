@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'elo_rating.dart';
 
 class UserModel {
   final String uid;
   final String email;
   final String displayName;
-  final EloRating eloRating;
+  final int level;
+  final int totalXP;
   final int totalFocusMinutes;
   final int currentStreak;
   final int longestStreak;
@@ -19,7 +19,8 @@ class UserModel {
     required this.uid,
     required this.email,
     required this.displayName,
-    required this.eloRating,
+    required this.level,
+    required this.totalXP,
     required this.totalFocusMinutes,
     required this.currentStreak,
     required this.longestStreak,
@@ -43,10 +44,8 @@ class UserModel {
       uid: map['uid'] ?? '',
       email: map['email'] ?? '',
       displayName: map['displayName'] ?? 'Focus Hero',
-      eloRating:
-          map['eloRating'] != null
-              ? EloRating.fromMap(map['eloRating'])
-              : EloRating.initial(),
+      level: map['level'] ?? 1,
+      totalXP: map['totalXP'] ?? 0,
       totalFocusMinutes: map['totalFocusMinutes'] ?? 0,
       currentStreak: map['currentStreak'] ?? 0,
       longestStreak: map['longestStreak'] ?? 0,
@@ -63,7 +62,8 @@ class UserModel {
       'uid': uid,
       'email': email,
       'displayName': displayName,
-      'eloRating': eloRating.toMap(),
+      'level': level,
+      'totalXP': totalXP,
       'totalFocusMinutes': totalFocusMinutes,
       'currentStreak': currentStreak,
       'longestStreak': longestStreak,

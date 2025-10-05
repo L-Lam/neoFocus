@@ -42,17 +42,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyD95-WsUbvJ-i0NVJGq43sp8GbXuN_drvQ',
-    appId: '1:333805316478:web:0cebcc0b407a88d79d2b2f',
+    appId: '1:333805316478:web:60a420e1600d1c5a9d2b2f',
     messagingSenderId: '333805316478',
     projectId: 'smartfocus-f0db1',
     authDomain: 'smartfocus-f0db1.firebaseapp.com',
     storageBucket: 'smartfocus-f0db1.firebasestorage.app',
-    measurementId: 'G-88BJ39JFZX',
+    measurementId: 'G-X13YRTFP1P',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCgizmL9gUWhvunQzi_8SSF4Og8k_Q5rhw',
-    appId: '1:333805316478:android:52967ac2982387da9d2b2f',
+    appId: '1:333805316478:android:e6f0c4bfd2fd79909d2b2f',
     messagingSenderId: '333805316478',
     projectId: 'smartfocus-f0db1',
     storageBucket: 'smartfocus-f0db1.firebasestorage.app',
@@ -60,29 +60,29 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCRiHHPYiGviQzZi-ycsy2HaydJIFZGUnE',
-    appId: '1:333805316478:ios:46499deb7e93b52f9d2b2f',
+    appId: '1:333805316478:ios:35e3aa9ef0181c699d2b2f',
     messagingSenderId: '333805316478',
     projectId: 'smartfocus-f0db1',
     storageBucket: 'smartfocus-f0db1.firebasestorage.app',
-    iosBundleId: 'com.example.smartlock',
+    iosBundleId: 'com.example.cat',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyCRiHHPYiGviQzZi-ycsy2HaydJIFZGUnE',
-    appId: '1:333805316478:ios:46499deb7e93b52f9d2b2f',
+    appId: '1:333805316478:ios:35e3aa9ef0181c699d2b2f',
     messagingSenderId: '333805316478',
     projectId: 'smartfocus-f0db1',
     storageBucket: 'smartfocus-f0db1.firebasestorage.app',
-    iosBundleId: 'com.example.smartlock',
+    iosBundleId: 'com.example.cat',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyD95-WsUbvJ-i0NVJGq43sp8GbXuN_drvQ',
-    appId: '1:333805316478:web:0e7f52d415ce0d4f9d2b2f',
+    appId: '1:333805316478:web:0cebcc0b407a88d79d2b2f',
     messagingSenderId: '333805316478',
     projectId: 'smartfocus-f0db1',
     authDomain: 'smartfocus-f0db1.firebaseapp.com',
     storageBucket: 'smartfocus-f0db1.firebasestorage.app',
-    measurementId: 'G-TPX06Z6XQF',
+    measurementId: 'G-88BJ39JFZX',
   );
 }
