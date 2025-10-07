@@ -10,15 +10,14 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../core/utils/responsive_helper.dart';
 import '../../../widgets/active_session_card.dart';
-import '../../../widgets/app_button.dart';
 import '../../../widgets/loading_indicator.dart';
 import '../../analytics/screens/analytics_screen.dart';
 import '../../analytics/services/analytics_service.dart';
 import '../../focus/screens/focus_timer_screen.dart';
+import '../../gacha/gacha/screens/gacha_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../social/screens/challenges_screen.dart';
-import '../../social/screens/leaderboard_screen.dart';
 import '../../social/screens/social_hub_screen.dart';
 
 
@@ -593,15 +592,15 @@ class HomeScreen extends StatelessWidget {
                         SizedBox(width: 12.w),
                         Expanded(
                           child: _buildActionCard(
-                            'Leaderboard',
-                            'Rankings',
+                            'Buddy Finder',
+                            'Find new buddies here!',
                             Icons.leaderboard,
                             AppColors.error,
                                 () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const LeaderboardScreen(),
+                                  builder: (_) => const GachaScreen(),
                                 ),
                               );
                             },
