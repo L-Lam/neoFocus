@@ -33,21 +33,27 @@ class AnalyticsData {
   });
 
   factory AnalyticsData.fromFirestore(
-    Map<String, dynamic> userData,
-    List<QueryDocumentSnapshot> sessions,
-    String period,
-  ) {
+      Map<String, dynamic> userData,
+      List<QueryDocumentSnapshot> sessions,
+      String period,
+      ) {
     // Process session data
     final dailyData = _processDailyData(sessions, period);
     final categoryData = _processCategoryData(sessions);
     final productiveTime = _findMostProductiveTime(sessions);
 
+    // Get values from userData with proper defaults
+    final totalFocusMinutes = userData['totalFocusMinutes'] ?? 0;
+    final currentStreak = userData['currentStreak'] ?? 0;
+    final longestStreak = userData['longestStreak'] ?? 0;
+    final level = userData['level'] ?? 1;
+
     return AnalyticsData(
-      totalFocusMinutes: (userData['totalFocusMinutes'] ?? 0).toInt(),
-      currentStreak: (userData['currentStreak'] ?? 0).toInt(),
-      longestStreak: (userData['longestStreak'] ?? 0).toInt(),
+      totalFocusMinutes: totalFocusMinutes is int ? totalFocusMinutes : totalFocusMinutes.toInt(),
+      currentStreak: currentStreak is int ? currentStreak : currentStreak.toInt(),
+      longestStreak: longestStreak is int ? longestStreak : longestStreak.toInt(),
       totalSessions: sessions.length,
-      level: (userData['level'] ?? 1).toInt(),
+      level: level is int ? level : level.toInt(),
       consistency: _calculateConsistency(dailyData),
       totalDays: dailyData.length,
       dailyFocusData: dailyData,
@@ -60,9 +66,9 @@ class AnalyticsData {
   }
 
   static List<DailyFocusData> _processDailyData(
-    List<QueryDocumentSnapshot> sessions,
-    String period,
-  ) {
+      List<QueryDocumentSnapshot> sessions,
+      String period,
+      ) {
     final Map<String, int> dailyMinutes = {};
     final now = DateTime.now();
 
@@ -85,15 +91,41 @@ class AnalyticsData {
     // Group sessions by day
     for (final session in sessions) {
       final data = session.data() as Map<String, dynamic>;
-      final timestamp = (data['completedAt'] as Timestamp).toDate();
 
-      if (timestamp.isAfter(startDate)) {
+      // Try different timestamp fields
+      DateTime? timestamp;
+
+      // Try completedAt first
+      if (data['completedAt'] != null) {
+        timestamp = (data['completedAt'] as Timestamp).toDate();
+      }
+      // Try startTime if completedAt doesn't exist
+      else if (data['startTime'] != null) {
+        timestamp = (data['startTime'] as Timestamp).toDate();
+        // Add duration to get completion time
+        final duration = data['duration'] ?? 25;
+        timestamp = timestamp.add(Duration(minutes: duration));
+      }
+      // Try startedAt
+      else if (data['startedAt'] != null) {
+        timestamp = (data['startedAt'] as Timestamp).toDate();
+        final duration = data['duration'] ?? 25;
+        timestamp = timestamp.add(Duration(minutes: duration));
+      }
+
+      if (timestamp != null && timestamp.isAfter(startDate)) {
         final dateKey =
             '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')}';
-        final minutes = (data['duration'] ?? 0).toInt();
-        // Fix: Explicitly cast to int
-        dailyMinutes[dateKey] =
-            ((dailyMinutes[dateKey] ?? 0) + minutes).toInt();
+
+        // Get duration from various possible fields
+        int minutes = 0;
+        if (data['actualDuration'] != null) {
+          minutes = (data['actualDuration'] as num).toInt();
+        } else if (data['duration'] != null) {
+          minutes = (data['duration'] as num).toInt();
+        }
+
+        dailyMinutes[dateKey] = (dailyMinutes[dateKey] ?? 0) + minutes;
       }
     }
 
@@ -114,8 +146,8 @@ class AnalyticsData {
   }
 
   static Map<String, int> _processCategoryData(
-    List<QueryDocumentSnapshot> sessions,
-  ) {
+      List<QueryDocumentSnapshot> sessions,
+      ) {
     final Map<String, int> categories = {
       'Work': 0,
       'Study': 0,
@@ -126,9 +158,16 @@ class AnalyticsData {
     for (final session in sessions) {
       final data = session.data() as Map<String, dynamic>;
       final category = data['category'] ?? 'Other';
-      final minutes = (data['duration'] ?? 0).toInt();
-      // Fix: Explicitly cast to int
-      categories[category] = ((categories[category] ?? 0) + minutes).toInt();
+
+      // Get duration
+      int minutes = 0;
+      if (data['actualDuration'] != null) {
+        minutes = (data['actualDuration'] as num).toInt();
+      } else if (data['duration'] != null) {
+        minutes = (data['duration'] as num).toInt();
+      }
+
+      categories[category] = (categories[category] ?? 0) + minutes;
     }
 
     return categories;
@@ -139,11 +178,29 @@ class AnalyticsData {
 
     for (final session in sessions) {
       final data = session.data() as Map<String, dynamic>;
-      final timestamp = (data['startedAt'] as Timestamp).toDate();
-      final hour = timestamp.hour;
-      final minutes = (data['duration'] ?? 0).toInt();
-      // Fix: Explicitly cast to int
-      hourlyMinutes[hour] = ((hourlyMinutes[hour] ?? 0) + minutes).toInt();
+
+      // Try different timestamp fields
+      DateTime? timestamp;
+
+      if (data['startTime'] != null) {
+        timestamp = (data['startTime'] as Timestamp).toDate();
+      } else if (data['startedAt'] != null) {
+        timestamp = (data['startedAt'] as Timestamp).toDate();
+      }
+
+      if (timestamp != null) {
+        final hour = timestamp.hour;
+
+        // Get duration
+        int minutes = 0;
+        if (data['actualDuration'] != null) {
+          minutes = (data['actualDuration'] as num).toInt();
+        } else if (data['duration'] != null) {
+          minutes = (data['duration'] as num).toInt();
+        }
+
+        hourlyMinutes[hour] = (hourlyMinutes[hour] ?? 0) + minutes;
+      }
     }
 
     if (hourlyMinutes.isEmpty) return 'No data';
@@ -152,7 +209,7 @@ class AnalyticsData {
         hourlyMinutes.entries.reduce((a, b) => a.value > b.value ? a : b).key;
 
     if (mostProductiveHour < 12) {
-      return '$mostProductiveHour:00 AM';
+      return mostProductiveHour == 0 ? '12:00 AM' : '$mostProductiveHour:00 AM';
     } else if (mostProductiveHour == 12) {
       return '12:00 PM';
     } else {

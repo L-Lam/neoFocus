@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'core/services/background_service.dart';
+import 'core/services/elo_daily_job.dart';
 import 'firebase_options.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/user_service.dart';
@@ -27,6 +28,7 @@ void main() async {
   }
   await NotificationService.initialize();
   await BackgroundService.initialize();
+  EloDailyJob.startDailyEloUpdates();
   runApp(const MyApp());
 }
 
@@ -48,24 +50,24 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProxyProvider<UserService, FocusSessionService>(
               create:
                   (context) => FocusSessionService(
-                    Provider.of<UserService>(context, listen: false),
-                  ),
+                Provider.of<UserService>(context, listen: false),
+              ),
               update:
                   (context, userService, previous) =>
-                      previous ?? FocusSessionService(userService),
+              previous ?? FocusSessionService(userService),
             ),
             ChangeNotifierProvider(create: (_) => FocusDetectionService()),
             ChangeNotifierProxyProvider<
-              FocusDetectionService,
-              FocusStateManager
+                FocusDetectionService,
+                FocusStateManager
             >(
               create:
                   (context) => FocusStateManager(
-                    Provider.of<FocusDetectionService>(context, listen: false),
-                  ),
+                Provider.of<FocusDetectionService>(context, listen: false),
+              ),
               update:
                   (context, detection, previous) =>
-                      previous ?? FocusStateManager(detection),
+              previous ?? FocusStateManager(detection),
             ),
           ],
           child: MaterialApp(

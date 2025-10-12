@@ -38,7 +38,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-// Register with email and password
+  // Register with email and password
   Future<String?> register({
     required String email,
     required String password,
@@ -70,6 +70,11 @@ class AuthService extends ChangeNotifier {
           'currentStreak': 0,
           'longestStreak': 0,
           'achievements': [],
+          'eloRating': 1200,
+          'eloRank': 'Bronze',
+          'peakElo': 1200,
+          'eloHistory': [],
+          'lastEloUpdate': FieldValue.serverTimestamp(),
           'preferences': {
             'focusDuration': 25,
             'breakDuration': 5,
@@ -84,7 +89,6 @@ class AuthService extends ChangeNotifier {
       return _handleAuthException(e);
     }
   }
-
 
   // Sign out
   Future<void> signOut() async {

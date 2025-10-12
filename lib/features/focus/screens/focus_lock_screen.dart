@@ -63,10 +63,10 @@ class _FocusLockScreenState extends State<FocusLockScreen>
     }
 
     final progress =
-        session.duration > 0
-            ? (session.duration * 60 - session.remainingSeconds) /
-                (session.duration * 60)
-            : 0.0;
+    session.duration > 0
+        ? (session.duration * 60 - session.remainingSeconds) /
+        (session.duration * 60)
+        : 0.0;
 
     return WillPopScope(
       onWillPop: () async {
@@ -155,9 +155,9 @@ class _FocusLockScreenState extends State<FocusLockScreen>
                                             backgroundColor: Colors.white
                                                 .withOpacity(0.2),
                                             valueColor:
-                                                const AlwaysStoppedAnimation<
-                                                  Color
-                                                >(Colors.white),
+                                            const AlwaysStoppedAnimation<
+                                                Color
+                                            >(Colors.white),
                                           ),
                                         ),
 
@@ -181,9 +181,9 @@ class _FocusLockScreenState extends State<FocusLockScreen>
                                               'remaining',
                                               style: AppTextStyles.body
                                                   .copyWith(
-                                                    color: Colors.white
-                                                        .withOpacity(0.8),
-                                                  ),
+                                                color: Colors.white
+                                                    .withOpacity(0.8),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -341,15 +341,15 @@ class _FocusLockScreenState extends State<FocusLockScreen>
         height: 60.w,
         decoration: BoxDecoration(
           color:
-              isDestructive
-                  ? Colors.red.withOpacity(0.2)
-                  : Colors.white.withOpacity(0.2),
+          isDestructive
+              ? Colors.red.withOpacity(0.2)
+              : Colors.white.withOpacity(0.2),
           shape: BoxShape.circle,
           border: Border.all(
             color:
-                isDestructive
-                    ? Colors.red.withOpacity(0.4)
-                    : Colors.white.withOpacity(0.4),
+            isDestructive
+                ? Colors.red.withOpacity(0.4)
+                : Colors.white.withOpacity(0.4),
             width: 2,
           ),
         ),
@@ -428,28 +428,28 @@ class _FocusLockScreenState extends State<FocusLockScreen>
       context: context,
       builder:
           (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text('Exit Focus Mode?', style: AppTextStyles.heading3),
-            content: Text(
-              'Your session is still running. You can return to the home screen and the timer will continue in the background.',
-              style: AppTextStyles.body,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Stay'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                child: const Text('Exit'),
-              ),
-            ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text('Exit Focus Mode?', style: AppTextStyles.heading3),
+        content: Text(
+          'Your session is still running. You can return to the home screen and the timer will continue in the background.',
+          style: AppTextStyles.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Stay'),
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('Exit'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -463,30 +463,30 @@ class _FocusLockScreenState extends State<FocusLockScreen>
       context: context,
       builder:
           (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text('Stop Session?', style: AppTextStyles.heading3),
-            content: Text(
-              'Are you sure you want to stop this session? Your progress will be lost.',
-              style: AppTextStyles.body,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Continue'),
-              ),
-              TextButton(
-                onPressed: () {
-                  sessionService.stopSession();
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                child: const Text('Stop'),
-              ),
-            ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text('Stop Session?', style: AppTextStyles.heading3),
+        content: Text(
+          'Are you sure you want to stop this session? Your progress will be lost.',
+          style: AppTextStyles.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Continue'),
           ),
+          TextButton(
+            onPressed: () {
+              sessionService.stopSession();
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Stop'),
+          ),
+        ],
+      ),
     );
   }
 }

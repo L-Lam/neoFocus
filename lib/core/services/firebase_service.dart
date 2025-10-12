@@ -1,7 +1,9 @@
 // Replace lib/core/services/firebase_service.dart with this version
-import 'package:cat/core/services/task_service.dart';
+import '/core/services/task_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+import 'elo_service.dart';
 
 class FirebaseService {
   static final FirebaseAuth auth = FirebaseAuth.instance;
@@ -19,15 +21,13 @@ class FirebaseService {
     return null;
   }
 
-  // In your FirebaseService.initializeUserDocument method, ensure all fields are included:
-
-// Initialize user document in Firestore
+  // Initialize user document in Firestore
   static Future<void> initializeUserDocument(User user) async {
     final userDoc = users.doc(user.uid);
     final docSnapshot = await userDoc.get();
 
     if (!docSnapshot.exists) {
-      // New user - create document
+      // New user - create document with ELO fields
       await userDoc.set({
         'uid': user.uid,
         'email': user.email,
@@ -40,6 +40,13 @@ class FirebaseService {
         'currentStreak': 0,
         'longestStreak': 0,
         'achievements': [],
+        // ELO fields
+        'eloRating': 1200,
+        'eloRank': 'Bronze',
+        'peakElo': 1200,
+        'eloHistory': [],
+        'lastEloUpdate': FieldValue.serverTimestamp(),
+        // Preferences
         'preferences': {
           'focusDuration': 25,
           'breakDuration': 5,
@@ -49,13 +56,13 @@ class FirebaseService {
       });
     } else {
       // Existing user - update last login and sync display name
+      final userData = docSnapshot.data() as Map<String, dynamic>;
       final updates = <String, dynamic>{
         'lastLoginAt': FieldValue.serverTimestamp(),
       };
 
       // Sync display name from Firebase Auth if it exists
       if (user.displayName != null && user.displayName!.isNotEmpty) {
-        final userData = docSnapshot.data() as Map<String, dynamic>;
         final currentDisplayName = userData['displayName'];
 
         // Update if Firestore has no display name or it's the default
@@ -66,12 +73,27 @@ class FirebaseService {
         }
       }
 
+      // Add ELO fields if missing (for existing users)
+      if (!userData.containsKey('eloRating')) {
+        updates['eloRating'] = 1200;
+        updates['eloRank'] = 'Bronze';
+        updates['peakElo'] = 1200;
+        updates['eloHistory'] = [];
+        updates['lastEloUpdate'] = FieldValue.serverTimestamp();
+      }
+
       await userDoc.update(updates);
+
+      // Check for daily ELO update
+      try {
+        // Import dynamically to avoid circular dependencies
+       // final EloService = (await import('elo_service.dart')).EloService;
+        await EloService.scheduleDailyEloUpdate(user.uid);
+      } catch (e) {
+        print('ELO daily update check error: $e');
+      }
     }
   }
-
-
-
 
   // Get user data once
   static Future<Map<String, dynamic>?> getUserData(String uid) async {

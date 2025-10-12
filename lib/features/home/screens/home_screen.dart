@@ -10,13 +10,12 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../core/utils/responsive_helper.dart';
 import '../../../widgets/active_session_card.dart';
+import '../../../widgets/app_button.dart';
 import '../../../widgets/loading_indicator.dart';
 import '../../analytics/screens/analytics_screen.dart';
 import '../../analytics/services/analytics_service.dart';
 import '../../focus/screens/focus_timer_screen.dart';
 import '../../gacha/gacha/screens/gacha_screen.dart';
-import '../../profile/screens/profile_screen.dart';
-import '../../settings/screens/settings_screen.dart';
 import '../../social/screens/challenges_screen.dart';
 import '../../social/screens/social_hub_screen.dart';
 
@@ -58,24 +57,7 @@ class HomeScreen extends StatelessWidget {
             icon: const Icon(Icons.settings_outlined),
             color: AppColors.textPrimary,
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const SettingsScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            color: AppColors.textPrimary,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ProfileScreen(),
-                ),
-              );
+              // TODO: Navigate to settings
             },
           ),
           IconButton(
@@ -113,8 +95,8 @@ class HomeScreen extends StatelessWidget {
           final longestStreak = userData['longestStreak'] ?? 0;
           final achievements = List<String>.from(userData['achievements'] ?? []);
           final totalXP = userData['totalXP'] ?? 0;
-
-
+          final eloRating = userData['eloRating'] ?? 1200;
+          final eloRank = userData['eloRank'] ?? 'Bronze';
 
 
           return SingleChildScrollView(
@@ -204,7 +186,7 @@ class HomeScreen extends StatelessWidget {
                                       ),
                                       child: FractionallySizedBox(
                                         alignment: Alignment.centerLeft,
-                                        widthFactor: _getLevelProgress(totalXP, level),
+                                        widthFactor: _getLevelProgress(totalFocusMinutes, level),
                                         child: Container(
                                           decoration: BoxDecoration(
                                             color: Colors.white,
@@ -229,16 +211,12 @@ class HomeScreen extends StatelessWidget {
                                 value: level.toString(),
                                 color: Colors.white,
                               ),
-
-
                               _buildStatItem(
                                 icon: Icons.star,
                                 label: 'Total XP',
-                                value: (totalXP).toString(),
+                                value: totalXP.toString(),
                                 color: Colors.white,
                               ),
-
-
                               _buildStatItem(
                                 icon: Icons.timer,
                                 label: 'Focus Time',
@@ -252,6 +230,56 @@ class HomeScreen extends StatelessWidget {
                                 color: Colors.white,
                               ),
                             ],
+                          ),
+                          SizedBox(height: 16.h),
+                          // ELO Rating Display
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20.w,
+                              vertical: 10.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _getEloRankIcon(eloRank),
+                                  style: TextStyle(fontSize: 20.sp),
+                                ),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  'ELO: $eloRating',
+                                  style: AppTextStyles.body.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(width: 8.w),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12.w,
+                                    vertical: 4.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    eloRank,
+                                    style: AppTextStyles.caption.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -269,69 +297,66 @@ class HomeScreen extends StatelessWidget {
                       builder: (context, activeSessionSnapshot) {
                         if (activeSessionSnapshot.hasData &&
                             activeSessionSnapshot.data!.docs.isNotEmpty) {
-                          final sessionDoc = activeSessionSnapshot.data!.docs.first;
-                          final sessionData = sessionDoc.data() as Map<String, dynamic>;
+                          final sessionData = activeSessionSnapshot.data!.docs.first.data()
+                          as Map<String, dynamic>;
                           final earnedXP = sessionData['earnedXP'] ?? 0;
 
 
-                          final sessionType = sessionData['type'] ?? 'focus';
-
-
-                          // if (earnedXP > 0 && sessionType == 'focus') {
-                          //   return Container(
-                          //     margin: EdgeInsets.only(bottom: 16.h),
-                          //     padding: EdgeInsets.symmetric(
-                          //       horizontal: 20.w,
-                          //       vertical: 12.h,
-                          //     ),
-                          //     decoration: BoxDecoration(
-                          //       gradient: LinearGradient(
-                          //         colors: [
-                          //           AppColors.success,
-                          //           AppColors.success.withOpacity(0.8),
-                          //         ],
-                          //       ),
-                          //       borderRadius: BorderRadius.circular(30),
-                          //       boxShadow: [
-                          //         BoxShadow(
-                          //           color: AppColors.success.withOpacity(0.3),
-                          //           blurRadius: 10,
-                          //           offset: const Offset(0, 5),
-                          //         ),
-                          //       ],
-                          //     ),
-                          //     // child: Row(
-                          //     //   mainAxisSize: MainAxisSize.min,
-                          //     //   mainAxisAlignment: MainAxisAlignment.center,
-                          //     //   children: [
-                          //     //     Icon(
-                          //     //       Icons.trending_up,
-                          //     //       color: Colors.white,
-                          //     //       size: 20.sp,
-                          //     //     ),
-                          //     //     SizedBox(width: 8.w),
-                          //     //     // Text(
-                          //     //     //   'Earning XP: +$earnedXP',
-                          //     //     //   style: AppTextStyles.body.copyWith(
-                          //     //     //     color: Colors.white,
-                          //     //     //     fontWeight: FontWeight.w600,
-                          //     //     //   ),
-                          //     //     // ),
-                          //     //     SizedBox(width: 8.w),
-                          //     //     SizedBox(
-                          //     //       width: 12.w,
-                          //     //       height: 12.w,
-                          //     //       child: CircularProgressIndicator(
-                          //     //         strokeWidth: 2,
-                          //     //         valueColor: AlwaysStoppedAnimation<Color>(
-                          //     //           Colors.white,
-                          //     //         ),
-                          //     //       ),
-                          //     //     ),
-                          //     //   ],
-                          //     // ),
-                          //   );
-                          //}
+                          if (earnedXP > 0) {
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 16.h),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 20.w,
+                                vertical: 12.h,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.success,
+                                    AppColors.success.withOpacity(0.8),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(30),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.success.withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.trending_up,
+                                    color: Colors.white,
+                                    size: 20.sp,
+                                  ),
+                                  SizedBox(width: 8.w),
+                                  Text(
+                                    'Earning XP: +$earnedXP',
+                                    style: AppTextStyles.body.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8.w),
+                                  SizedBox(
+                                    width: 12.w,
+                                    height: 12.w,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
                         }
                         return const SizedBox.shrink();
                       },
@@ -342,13 +367,13 @@ class HomeScreen extends StatelessWidget {
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseService.currentUserDoc
                           ?.collection('sessions')
-                          .where('startedAt', isGreaterThanOrEqualTo:
+                          .where('startTime', isGreaterThanOrEqualTo:
                       Timestamp.fromDate(DateTime(
                         DateTime.now().year,
                         DateTime.now().month,
                         DateTime.now().day,
                       )))
-                          .where('startedAt', isLessThan:
+                          .where('startTime', isLessThan:
                       Timestamp.fromDate(DateTime(
                         DateTime.now().year,
                         DateTime.now().month,
@@ -367,9 +392,7 @@ class HomeScreen extends StatelessWidget {
 
                           for (var doc in todaySessionsSnapshot.data!.docs) {
                             final sessionData = doc.data() as Map<String, dynamic>;
-                            // Handle both 'duration' and 'actualDuration' fields
-                            final duration = sessionData['actualDuration'] ??
-                                sessionData['duration'] ?? 25;
+                            final duration = sessionData['duration'] ?? 25;
                             todayFocusMinutes += duration as int;
                           }
                         }
@@ -481,6 +504,8 @@ class HomeScreen extends StatelessWidget {
                           ),
                         );
                       },
+
+
                       child: Container(
                         width: double.infinity,
                         padding: EdgeInsets.all(24.w),
@@ -566,6 +591,8 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               );
                             },
+
+
                           ),
                         ),
                       ],
@@ -579,6 +606,8 @@ class HomeScreen extends StatelessWidget {
                             'Join the community! Interact with others!',
                             Icons.people,
                             AppColors.primary,
+
+
                                 () {
                               Navigator.push(
                                 context,
@@ -586,6 +615,8 @@ class HomeScreen extends StatelessWidget {
                                   builder: (_) => const SocialHubScreen(),
                                 ),
                               );
+
+
                             },
                           ),
                         ),
@@ -593,7 +624,7 @@ class HomeScreen extends StatelessWidget {
                         Expanded(
                           child: _buildActionCard(
                             'Buddy Finder',
-                            'Find new buddies here!',
+                            'Make new friends!',
                             Icons.leaderboard,
                             AppColors.error,
                                 () {
@@ -819,11 +850,25 @@ class HomeScreen extends StatelessWidget {
   }
 
 
-  double _getLevelProgress(int totalXP, int currentLevel) {
-    // Calculate XP progress within current level (100 XP per level)
-    final xpForCurrentLevel = (currentLevel - 1) * 100;
-    final xpInCurrentLevel = totalXP - xpForCurrentLevel;
-    return (xpInCurrentLevel / 100).clamp(0.0, 1.0);
+  String _getEloRankIcon(String rank) {
+    switch (rank) {
+      case 'Bronze': return '🥉';
+      case 'Silver': return '🥈';
+      case 'Gold': return '🥇';
+      case 'Platinum': return '💎';
+      case 'Diamond': return '💠';
+      case 'Master': return '👑';
+      case 'Grandmaster': return '🏆';
+      case 'Legend': return '🌟';
+      default: return '📈';
+    }
+  }
+
+
+  double _getLevelProgress(int totalMinutes, int currentLevel) {
+    final minutesPerLevel = 300; // 5 hours per level
+    final currentLevelMinutes = totalMinutes % minutesPerLevel;
+    return currentLevelMinutes / minutesPerLevel;
   }
 
 
@@ -882,11 +927,8 @@ class HomeScreen extends StatelessWidget {
       'currentStreak': 7,
       'longestStreak': 15,
       'level': 5,
-      'totalXP': 500,
       'achievements': ['first_session', 'week_streak'],
     });
   }
 }
-
-
 
