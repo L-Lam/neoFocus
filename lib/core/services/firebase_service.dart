@@ -31,7 +31,8 @@ class FirebaseService {
       await userDoc.set({
         'uid': user.uid,
         'email': user.email,
-        'displayName': user.displayName ?? user.email?.split('@')[0] ?? 'Focus Hero',
+        'displayName':
+            user.displayName ?? user.email?.split('@')[0] ?? 'Focus Hero',
         'createdAt': FieldValue.serverTimestamp(),
         'lastLoginAt': FieldValue.serverTimestamp(),
         'level': 1,
@@ -87,7 +88,7 @@ class FirebaseService {
       // Check for daily ELO update
       try {
         // Import dynamically to avoid circular dependencies
-       // final EloService = (await import('elo_service.dart')).EloService;
+        // final EloService = (await import('elo_service.dart')).EloService;
         await EloService.scheduleDailyEloUpdate(user.uid);
       } catch (e) {
         print('ELO daily update check error: $e');

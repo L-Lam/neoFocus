@@ -50,24 +50,24 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProxyProvider<UserService, FocusSessionService>(
               create:
                   (context) => FocusSessionService(
-                Provider.of<UserService>(context, listen: false),
-              ),
+                    Provider.of<UserService>(context, listen: false),
+                  ),
               update:
                   (context, userService, previous) =>
-              previous ?? FocusSessionService(userService),
+                      previous ?? FocusSessionService(userService),
             ),
             ChangeNotifierProvider(create: (_) => FocusDetectionService()),
             ChangeNotifierProxyProvider<
-                FocusDetectionService,
-                FocusStateManager
+              FocusDetectionService,
+              FocusStateManager
             >(
               create:
                   (context) => FocusStateManager(
-                Provider.of<FocusDetectionService>(context, listen: false),
-              ),
+                    Provider.of<FocusDetectionService>(context, listen: false),
+                  ),
               update:
                   (context, detection, previous) =>
-              previous ?? FocusStateManager(detection),
+                      previous ?? FocusStateManager(detection),
             ),
           ],
           child: MaterialApp(

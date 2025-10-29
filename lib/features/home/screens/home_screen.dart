@@ -19,10 +19,8 @@ import '../../gacha/gacha/screens/gacha_screen.dart';
 import '../../social/screens/challenges_screen.dart';
 import '../../social/screens/social_hub_screen.dart';
 
-
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
 
   @override
   Widget build(BuildContext context) {
@@ -30,16 +28,12 @@ class HomeScreen extends StatelessWidget {
     final user = authService.user;
     final screenPadding = ResponsiveHelper.getScreenPadding(context);
 
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        title: Text(
-          'Focus Hero',
-          style: AppTextStyles.heading3,
-        ),
+        title: Text('Focus Hero', style: AppTextStyles.heading3),
         actions: [
           IconButton(
             icon: const Icon(Icons.analytics),
@@ -47,9 +41,7 @@ class HomeScreen extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const AnalyticsScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
               );
             },
           ),
@@ -57,7 +49,7 @@ class HomeScreen extends StatelessWidget {
             icon: const Icon(Icons.settings_outlined),
             color: AppColors.textPrimary,
             onPressed: () {
-              // TODO: Navigate to settings
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
             },
           ),
           IconButton(
@@ -76,16 +68,11 @@ class HomeScreen extends StatelessWidget {
             return const LoadingIndicator();
           }
 
-
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return Center(
-              child: Text(
-                'Error loading user data',
-                style: AppTextStyles.body,
-              ),
+              child: Text('Error loading user data', style: AppTextStyles.body),
             );
           }
-
 
           final userData = snapshot.data!.data() as Map<String, dynamic>;
           final displayName = userData['displayName'] ?? 'Hero';
@@ -93,11 +80,12 @@ class HomeScreen extends StatelessWidget {
           final totalFocusMinutes = userData['totalFocusMinutes'] ?? 0;
           final currentStreak = userData['currentStreak'] ?? 0;
           final longestStreak = userData['longestStreak'] ?? 0;
-          final achievements = List<String>.from(userData['achievements'] ?? []);
+          final achievements = List<String>.from(
+            userData['achievements'] ?? [],
+          );
           final totalXP = userData['totalXP'] ?? 0;
           final eloRating = userData['eloRating'] ?? 1200;
           final eloRank = userData['eloRank'] ?? 'Bronze';
-
 
           return SingleChildScrollView(
             padding: screenPadding,
@@ -186,11 +174,16 @@ class HomeScreen extends StatelessWidget {
                                       ),
                                       child: FractionallySizedBox(
                                         alignment: Alignment.centerLeft,
-                                        widthFactor: _getLevelProgress(totalFocusMinutes, level),
+                                        widthFactor: _getLevelProgress(
+                                          totalFocusMinutes,
+                                          level,
+                                        ),
                                         child: Container(
                                           decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius: BorderRadius.circular(4),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -286,21 +279,21 @@ class HomeScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 24.h),
 
-
                     // Active Session Real-time XP Indicator
                     StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseService.currentUserDoc
-                          ?.collection('sessions')
-                          .where('isActive', isEqualTo: true)
-                          .limit(1)
-                          .snapshots(),
+                      stream:
+                          FirebaseService.currentUserDoc
+                              ?.collection('sessions')
+                              .where('isActive', isEqualTo: true)
+                              .limit(1)
+                              .snapshots(),
                       builder: (context, activeSessionSnapshot) {
                         if (activeSessionSnapshot.hasData &&
                             activeSessionSnapshot.data!.docs.isNotEmpty) {
-                          final sessionData = activeSessionSnapshot.data!.docs.first.data()
-                          as Map<String, dynamic>;
+                          final sessionData =
+                              activeSessionSnapshot.data!.docs.first.data()
+                                  as Map<String, dynamic>;
                           final earnedXP = sessionData['earnedXP'] ?? 0;
-
 
                           if (earnedXP > 0) {
                             return Container(
@@ -362,53 +355,61 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-
                     // Reward Progress Section with Dynamic Data
                     StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseService.currentUserDoc
-                          ?.collection('sessions')
-                          .where('startTime', isGreaterThanOrEqualTo:
-                      Timestamp.fromDate(DateTime(
-                        DateTime.now().year,
-                        DateTime.now().month,
-                        DateTime.now().day,
-                      )))
-                          .where('startTime', isLessThan:
-                      Timestamp.fromDate(DateTime(
-                        DateTime.now().year,
-                        DateTime.now().month,
-                        DateTime.now().day + 1,
-                      )))
-                          .snapshots(),
+                      stream:
+                          FirebaseService.currentUserDoc
+                              ?.collection('sessions')
+                              .where(
+                                'startTime',
+                                isGreaterThanOrEqualTo: Timestamp.fromDate(
+                                  DateTime(
+                                    DateTime.now().year,
+                                    DateTime.now().month,
+                                    DateTime.now().day,
+                                  ),
+                                ),
+                              )
+                              .where(
+                                'startTime',
+                                isLessThan: Timestamp.fromDate(
+                                  DateTime(
+                                    DateTime.now().year,
+                                    DateTime.now().month,
+                                    DateTime.now().day + 1,
+                                  ),
+                                ),
+                              )
+                              .snapshots(),
                       builder: (context, todaySessionsSnapshot) {
                         int todaySessionsCount = 0;
                         int todayFocusMinutes = 0;
                         int todayAchievements = 0;
 
-
                         if (todaySessionsSnapshot.hasData) {
-                          todaySessionsCount = todaySessionsSnapshot.data!.docs.length;
-
+                          todaySessionsCount =
+                              todaySessionsSnapshot.data!.docs.length;
 
                           for (var doc in todaySessionsSnapshot.data!.docs) {
-                            final sessionData = doc.data() as Map<String, dynamic>;
+                            final sessionData =
+                                doc.data() as Map<String, dynamic>;
                             final duration = sessionData['duration'] ?? 25;
                             todayFocusMinutes += duration as int;
                           }
                         }
-
 
                         // Calculate achievements
                         if (todaySessionsCount >= 3) todayAchievements++;
                         if (todayFocusMinutes >= 90) todayAchievements++;
                         if (todaySessionsCount > 0) todayAchievements++;
 
-
                         return Container(
                           padding: EdgeInsets.all(16.w),
                           decoration: BoxDecoration(
                             color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(AppConstants.largeRadius),
+                            borderRadius: BorderRadius.circular(
+                              AppConstants.largeRadius,
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.05),
@@ -422,7 +423,8 @@ class HomeScreen extends StatelessWidget {
                             children: [
                               const ActiveSessionCard(),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Text(
@@ -485,14 +487,9 @@ class HomeScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 24.h),
 
-
                     // Quick Actions
-                    Text(
-                      'Quick Actions',
-                      style: AppTextStyles.heading3,
-                    ),
+                    Text('Quick Actions', style: AppTextStyles.heading3),
                     SizedBox(height: 16.h),
-
 
                     // Start Focus Session - Hero Style
                     GestureDetector(
@@ -504,7 +501,6 @@ class HomeScreen extends StatelessWidget {
                           ),
                         );
                       },
-
 
                       child: Container(
                         width: double.infinity,
@@ -556,7 +552,6 @@ class HomeScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 16.h),
 
-
                     // Action Grid
                     Row(
                       children: [
@@ -566,7 +561,7 @@ class HomeScreen extends StatelessWidget {
                             'View Progress',
                             Icons.analytics,
                             AppColors.success,
-                                () {
+                            () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -583,7 +578,7 @@ class HomeScreen extends StatelessWidget {
                             'Daily Quests',
                             Icons.flag,
                             AppColors.warning,
-                                () {
+                            () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -591,8 +586,6 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               );
                             },
-
-
                           ),
                         ),
                       ],
@@ -607,16 +600,13 @@ class HomeScreen extends StatelessWidget {
                             Icons.people,
                             AppColors.primary,
 
-
-                                () {
+                            () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => const SocialHubScreen(),
                                 ),
                               );
-
-
                             },
                           ),
                         ),
@@ -627,7 +617,7 @@ class HomeScreen extends StatelessWidget {
                             'Make new friends!',
                             Icons.leaderboard,
                             AppColors.error,
-                                () {
+                            () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -639,7 +629,6 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-
 
                     // Debug button for generating sample data (remove in production)
                     if (true) // Set to false in production
@@ -667,7 +656,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-
   Widget _buildStatItem({
     required IconData icon,
     required String label,
@@ -676,11 +664,7 @@ class HomeScreen extends StatelessWidget {
   }) {
     return Column(
       children: [
-        Icon(
-          icon,
-          color: color.withOpacity(0.9),
-          size: 24.sp,
-        ),
+        Icon(icon, color: color.withOpacity(0.9), size: 24.sp),
         SizedBox(height: 4.h),
         Text(
           value,
@@ -691,24 +675,15 @@ class HomeScreen extends StatelessWidget {
         ),
         Text(
           label,
-          style: AppTextStyles.caption.copyWith(
-            color: color.withOpacity(0.8),
-          ),
+          style: AppTextStyles.caption.copyWith(color: color.withOpacity(0.8)),
         ),
       ],
     );
   }
 
-
-  Widget _buildDailyGoal(
-      String title,
-      int current,
-      int total,
-      IconData icon,
-      ) {
+  Widget _buildDailyGoal(String title, int current, int total, IconData icon) {
     final progress = (current / total).clamp(0.0, 1.0);
     final isCompleted = current >= total;
-
 
     return Row(
       children: [
@@ -716,9 +691,10 @@ class HomeScreen extends StatelessWidget {
           width: 36.w,
           height: 36.w,
           decoration: BoxDecoration(
-            color: isCompleted
-                ? AppColors.success.withOpacity(0.1)
-                : AppColors.surfaceVariant,
+            color:
+                isCompleted
+                    ? AppColors.success.withOpacity(0.1)
+                    : AppColors.surfaceVariant,
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -753,9 +729,8 @@ class HomeScreen extends StatelessWidget {
                   widthFactor: progress,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isCompleted
-                          ? AppColors.success
-                          : AppColors.primary,
+                      color:
+                          isCompleted ? AppColors.success : AppColors.primary,
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
@@ -769,9 +744,7 @@ class HomeScreen extends StatelessWidget {
           '$current/$total',
           style: TextStyle(
             fontSize: 11.sp,
-            color: isCompleted
-                ? AppColors.success
-                : AppColors.textSecondary,
+            color: isCompleted ? AppColors.success : AppColors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -779,14 +752,13 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-
   Widget _buildActionCard(
-      String title,
-      String subtitle,
-      IconData icon,
-      Color color,
-      VoidCallback onTap,
-      ) {
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -794,18 +766,11 @@ class HomeScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-          border: Border.all(
-            color: color.withOpacity(0.3),
-            width: 1,
-          ),
+          border: Border.all(color: color.withOpacity(0.3), width: 1),
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 32.sp,
-            ),
+            Icon(icon, color: color, size: 32.sp),
             SizedBox(height: 8.h),
             Text(
               title,
@@ -827,7 +792,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-
   String _getLevelTitle(int level) {
     if (level >= 100) return 'Enlightened';
     if (level >= 75) return 'Master';
@@ -837,7 +801,6 @@ class HomeScreen extends StatelessWidget {
     if (level >= 5) return 'Novice';
     return 'Newbie';
   }
-
 
   String _getLevelEmoji(int level) {
     if (level >= 100) return '🧘';
@@ -849,28 +812,34 @@ class HomeScreen extends StatelessWidget {
     return '🌱';
   }
 
-
   String _getEloRankIcon(String rank) {
     switch (rank) {
-      case 'Bronze': return '🥉';
-      case 'Silver': return '🥈';
-      case 'Gold': return '🥇';
-      case 'Platinum': return '💎';
-      case 'Diamond': return '💠';
-      case 'Master': return '👑';
-      case 'Grandmaster': return '🏆';
-      case 'Legend': return '🌟';
-      default: return '📈';
+      case 'Bronze':
+        return '🥉';
+      case 'Silver':
+        return '🥈';
+      case 'Gold':
+        return '🥇';
+      case 'Platinum':
+        return '💎';
+      case 'Diamond':
+        return '💠';
+      case 'Master':
+        return '👑';
+      case 'Grandmaster':
+        return '🏆';
+      case 'Legend':
+        return '🌟';
+      default:
+        return '📈';
     }
   }
-
 
   double _getLevelProgress(int totalMinutes, int currentLevel) {
     final minutesPerLevel = 300; // 5 hours per level
     final currentLevelMinutes = totalMinutes % minutesPerLevel;
     return currentLevelMinutes / minutesPerLevel;
   }
-
 
   String _formatMinutes(int minutes) {
     if (minutes < 60) {
@@ -882,44 +851,38 @@ class HomeScreen extends StatelessWidget {
     }
   }
 
-
   // Generate sample data for testing
   Future<void> _generateSampleData() async {
     final analyticsService = AnalyticsService();
-
 
     // Generate sessions for the past 30 days
     final random = Random();
     final now = DateTime.now();
 
-
     for (int i = 0; i < 30; i++) {
       final date = now.subtract(Duration(days: i));
       final sessionsPerDay = random.nextInt(4) + 1;
-
 
       for (int j = 0; j < sessionsPerDay; j++) {
         final hour = random.nextInt(14) + 7; // 7 AM to 9 PM
         final startTime = DateTime(date.year, date.month, date.day, hour);
         final duration = [25, 25, 25, 50, 90][random.nextInt(5)];
 
-
         await FirebaseService.firestore
             .collection('users')
             .doc(FirebaseService.auth.currentUser!.uid)
             .collection('sessions')
             .add({
-          'startedAt': Timestamp.fromDate(startTime),
-          'completedAt': Timestamp.fromDate(
-            startTime.add(Duration(minutes: duration)),
-          ),
-          'duration': duration,
-          'category': ['Work', 'Study', 'Personal'][random.nextInt(3)],
-          'type': 'pomodoro',
-        });
+              'startedAt': Timestamp.fromDate(startTime),
+              'completedAt': Timestamp.fromDate(
+                startTime.add(Duration(minutes: duration)),
+              ),
+              'duration': duration,
+              'category': ['Work', 'Study', 'Personal'][random.nextInt(3)],
+              'type': 'pomodoro',
+            });
       }
     }
-
 
     // Update user stats
     await FirebaseService.currentUserDoc!.update({
@@ -931,4 +894,3 @@ class HomeScreen extends StatelessWidget {
     });
   }
 }
-

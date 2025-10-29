@@ -33,10 +33,10 @@ class AnalyticsData {
   });
 
   factory AnalyticsData.fromFirestore(
-      Map<String, dynamic> userData,
-      List<QueryDocumentSnapshot> sessions,
-      String period,
-      ) {
+    Map<String, dynamic> userData,
+    List<QueryDocumentSnapshot> sessions,
+    String period,
+  ) {
     // Process session data
     final dailyData = _processDailyData(sessions, period);
     final categoryData = _processCategoryData(sessions);
@@ -49,9 +49,14 @@ class AnalyticsData {
     final level = userData['level'] ?? 1;
 
     return AnalyticsData(
-      totalFocusMinutes: totalFocusMinutes is int ? totalFocusMinutes : totalFocusMinutes.toInt(),
-      currentStreak: currentStreak is int ? currentStreak : currentStreak.toInt(),
-      longestStreak: longestStreak is int ? longestStreak : longestStreak.toInt(),
+      totalFocusMinutes:
+          totalFocusMinutes is int
+              ? totalFocusMinutes
+              : totalFocusMinutes.toInt(),
+      currentStreak:
+          currentStreak is int ? currentStreak : currentStreak.toInt(),
+      longestStreak:
+          longestStreak is int ? longestStreak : longestStreak.toInt(),
       totalSessions: sessions.length,
       level: level is int ? level : level.toInt(),
       consistency: _calculateConsistency(dailyData),
@@ -66,9 +71,9 @@ class AnalyticsData {
   }
 
   static List<DailyFocusData> _processDailyData(
-      List<QueryDocumentSnapshot> sessions,
-      String period,
-      ) {
+    List<QueryDocumentSnapshot> sessions,
+    String period,
+  ) {
     final Map<String, int> dailyMinutes = {};
     final now = DateTime.now();
 
@@ -146,8 +151,8 @@ class AnalyticsData {
   }
 
   static Map<String, int> _processCategoryData(
-      List<QueryDocumentSnapshot> sessions,
-      ) {
+    List<QueryDocumentSnapshot> sessions,
+  ) {
     final Map<String, int> categories = {
       'Work': 0,
       'Study': 0,

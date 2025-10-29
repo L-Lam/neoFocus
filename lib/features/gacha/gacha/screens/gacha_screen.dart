@@ -75,10 +75,7 @@ class _GachaScreenState extends State<GachaScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'You got!',
-                    style: AppTextStyles.heading2,
-                  ),
+                  Text('You got!', style: AppTextStyles.heading2),
                   ...[
                     SizedBox(height: 8.h),
                     Container(
@@ -194,6 +191,16 @@ class _GachaScreenState extends State<GachaScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.info_outline),
+            color: AppColors.textPrimary,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DropRatesScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.inventory_2_outlined),
             color: AppColors.textPrimary,
             onPressed: () {
@@ -209,9 +216,9 @@ class _GachaScreenState extends State<GachaScreen> {
         padding: EdgeInsets.all(20.w),
         child: Column(
           children: [
-            // Simple banner
             Container(
               width: double.infinity,
+              height: 400,
               padding: EdgeInsets.all(20.w),
               decoration: BoxDecoration(
                 color: AppColors.surface,
@@ -237,151 +244,103 @@ class _GachaScreenState extends State<GachaScreen> {
               ),
             ),
             SizedBox(height: 20.h),
-
-            // View Available Buddies Button
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const DropRatesScreen(),
-                  ),
-                );
-              },
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 16.w),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(
-                    AppConstants.defaultRadius,
-                  ),
-                  border: Border.all(
-                    color: AppColors.primary.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.visibility_outlined,
-                      color: AppColors.primary,
-                      size: 20.sp,
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      'View Available Buddies',
-                      style: AppTextStyles.body.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+            // Pull Buttons Row
+            Row(
+              children: [
+                // Single Pull Button
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _isPulling ? null : _handleSinglePull,
+                    child: Container(
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: _isPulling ? Colors.grey : AppColors.primary,
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.defaultRadius,
+                        ),
+                        boxShadow:
+                            _isPulling
+                                ? []
+                                : [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.star, size: 28.sp, color: Colors.white),
+                          SizedBox(height: 8.h),
+                          Text(
+                            '1x Search',
+                            style: AppTextStyles.body.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            '100 Coins',
+                            style: AppTextStyles.caption.copyWith(
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 24.h),
-
-            // Single Pull Button
-            GestureDetector(
-              onTap: _isPulling ? null : _handleSinglePull,
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(20.w),
-                decoration: BoxDecoration(
-                  color: _isPulling ? Colors.grey : AppColors.primary,
-                  borderRadius: BorderRadius.circular(
-                    AppConstants.defaultRadius,
                   ),
-                  boxShadow:
-                      _isPulling
-                          ? []
-                          : [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.star, size: 28.sp, color: Colors.white),
-                    SizedBox(width: 12.w),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Single Pull',
-                          style: AppTextStyles.body.copyWith(
+                SizedBox(width: 12.w),
+                // 6 Pull Button
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _isPulling ? null : _handleSixPull,
+                    child: Container(
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: _isPulling ? Colors.grey : AppColors.warning,
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.defaultRadius,
+                        ),
+                        boxShadow:
+                            _isPulling
+                                ? []
+                                : [
+                                  BoxShadow(
+                                    color: AppColors.warning.withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.auto_awesome,
+                            size: 28.sp,
                             color: Colors.white,
-                            fontWeight: FontWeight.w600,
                           ),
-                        ),
-                        Text(
-                          '0 Coins',
-                          style: AppTextStyles.caption.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                          SizedBox(height: 8.h),
+                          Text(
+                            '6x Search',
+                            style: AppTextStyles.body.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ],
+                          Text(
+                            '600 Coins',
+                            style: AppTextStyles.caption.copyWith(
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 12.h),
-
-            // 6 Pull Button
-            GestureDetector(
-              onTap: _isPulling ? null : _handleSixPull,
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(20.w),
-                decoration: BoxDecoration(
-                  color: _isPulling ? Colors.grey : AppColors.warning,
-                  borderRadius: BorderRadius.circular(
-                    AppConstants.defaultRadius,
                   ),
-                  boxShadow:
-                      _isPulling
-                          ? []
-                          : [
-                            BoxShadow(
-                              color: AppColors.warning.withOpacity(0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.auto_awesome, size: 28.sp, color: Colors.white),
-                    SizedBox(width: 12.w),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '6x Pull',
-                          style: AppTextStyles.body.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          '0 Coins',
-                          style: AppTextStyles.caption.copyWith(
-                            color: Colors.white.withOpacity(0.9),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
 
             if (_isPulling) ...[

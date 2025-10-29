@@ -16,7 +16,13 @@ class EloDailyJob {
 
     // Calculate time until next midnight
     final now = DateTime.now();
-    final tomorrow = DateTime(now.year, now.month, now.day + 1, 0, 5); // 12:05 AM
+    final tomorrow = DateTime(
+      now.year,
+      now.month,
+      now.day + 1,
+      0,
+      5,
+    ); // 12:05 AM
     final timeUntilMidnight = tomorrow.difference(now);
 
     // Schedule first run at midnight
@@ -46,10 +52,14 @@ class EloDailyJob {
 
       // Get all users who were active in the last 7 days
       final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
-      final users = await FirebaseService.firestore
-          .collection('users')
-          .where('lastLoginAt', isGreaterThan: Timestamp.fromDate(sevenDaysAgo))
-          .get();
+      final users =
+          await FirebaseService.firestore
+              .collection('users')
+              .where(
+                'lastLoginAt',
+                isGreaterThan: Timestamp.fromDate(sevenDaysAgo),
+              )
+              .get();
 
       int updated = 0;
 
@@ -66,7 +76,6 @@ class EloDailyJob {
 
       // Update global leaderboard stats
       await _updateLeaderboardStats();
-
     } catch (e) {
       print('[ELO] Daily update error: $e');
     } finally {
@@ -78,11 +87,12 @@ class EloDailyJob {
   static Future<void> _updateLeaderboardStats() async {
     try {
       // Get top 100 players
-      final topPlayers = await FirebaseService.firestore
-          .collection('users')
-          .orderBy('eloRating', descending: true)
-          .limit(100)
-          .get();
+      final topPlayers =
+          await FirebaseService.firestore
+              .collection('users')
+              .orderBy('eloRating', descending: true)
+              .limit(100)
+              .get();
 
       if (topPlayers.docs.isEmpty) return;
 
@@ -100,7 +110,6 @@ class EloDailyJob {
           .collection('global')
           .doc('elo_stats')
           .set(stats, SetOptions(merge: true));
-
     } catch (e) {
       print('[ELO] Leaderboard stats update error: $e');
     }

@@ -15,25 +15,20 @@ import '../widgets/stats_summary.dart';
 import '../models/analytics_data.dart';
 import '../services/analytics_service.dart';
 
-
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
-
 
   @override
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
 }
 
-
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   final AnalyticsService _analyticsService = AnalyticsService();
   String _selectedPeriod = 'week';
 
-
   @override
   Widget build(BuildContext context) {
     final screenPadding = ResponsiveHelper.getScreenPadding(context);
-
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -54,7 +49,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             return const LoadingIndicator();
           }
 
-
           if (!snapshot.hasData) {
             return Center(
               child: Text(
@@ -64,9 +58,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             );
           }
 
-
           final analytics = snapshot.data!;
-
 
           return SingleChildScrollView(
             padding: screenPadding,
@@ -81,11 +73,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     _buildPeriodSelector(),
                     SizedBox(height: 24.h),
 
-
                     // Stats Summary
                     StatsSummary(analytics: analytics),
                     SizedBox(height: 24.h),
-
 
                     // Focus Time Chart
                     _buildChartSection(
@@ -96,7 +86,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       ),
                     ),
                     SizedBox(height: 24.h),
-
 
                     // Habit Strength
                     Text('Habit Strength', style: AppTextStyles.heading3),
@@ -109,7 +98,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     ),
                     SizedBox(height: 24.h),
 
-
                     // Achievements
                     Text('Achievements', style: AppTextStyles.heading3),
                     SizedBox(height: 16.h),
@@ -119,7 +107,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       level: analytics.level,
                     ),
                     SizedBox(height: 24.h),
-
 
                     // Insights
                     _buildInsightsSection(analytics),
@@ -132,7 +119,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ),
     );
   }
-
 
   Widget _buildPeriodSelector() {
     return Container(
@@ -150,10 +136,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-
   Widget _buildPeriodButton(String label, String value) {
     final isSelected = _selectedPeriod == value;
-
 
     return Expanded(
       child: GestureDetector(
@@ -177,7 +161,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ),
     );
   }
-
 
   Widget _buildChartSection(String title, Widget chart) {
     return Container(
@@ -204,10 +187,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-
   Widget _buildInsightsSection(AnalyticsData analytics) {
     final insights = _analyticsService.generateInsights(analytics);
-
 
     return Container(
       padding: EdgeInsets.all(20.w),
@@ -234,33 +215,33 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ...insights
               .map(
                 (insight) => Padding(
-              padding: EdgeInsets.only(bottom: 12.h),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 6.w,
-                    height: 6.w,
-                    margin: EdgeInsets.only(top: 6.h),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Text(
-                      insight,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textPrimary,
-                        height: 1.5,
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 6.w,
+                        height: 6.w,
+                        margin: EdgeInsets.only(top: 6.h),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Text(
+                          insight,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.textPrimary,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          )
+                ),
+              )
               .toList(),
         ],
       ),

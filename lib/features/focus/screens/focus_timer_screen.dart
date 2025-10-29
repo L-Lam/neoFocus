@@ -42,7 +42,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
     _loadUserPreferences();
 
     // Listen for session completion to update ELO
-  //  _sessionService.addListener(_handleSessionUpdate);
+    //  _sessionService.addListener(_handleSessionUpdate);
 
     // Initialize animations
     _pulseController = AnimationController(
@@ -206,7 +206,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
               child: FractionallySizedBox(
                 alignment: Alignment.centerLeft,
                 widthFactor:
-                1 -
+                    1 -
                     (currentSession.remainingSeconds /
                         (currentSession.duration * 60)),
                 child: Container(
@@ -304,7 +304,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
             _focusDuration,
             Icons.timer,
             AppColors.primary,
-                (value) {
+            (value) {
               setState(() => _focusDuration = value);
               _updateUserPreferences();
             },
@@ -318,7 +318,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
             _breakDuration,
             Icons.coffee,
             AppColors.warning,
-                (value) {
+            (value) {
               setState(() => _breakDuration = value);
               _updateUserPreferences();
             },
@@ -332,7 +332,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
             _longBreakDuration,
             Icons.weekend,
             AppColors.success,
-                (value) {
+            (value) {
               setState(() => _longBreakDuration = value);
               _updateUserPreferences();
             },
@@ -343,12 +343,12 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
   }
 
   Widget _buildDurationSetting(
-      String title,
-      int value,
-      IconData icon,
-      Color color,
-      Function(int) onChanged,
-      ) {
+    String title,
+    int value,
+    IconData icon,
+    Color color,
+    Function(int) onChanged,
+  ) {
     return Row(
       children: [
         Container(
@@ -384,10 +384,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
               icon: Container(
                 padding: EdgeInsets.all(4.w),
                 decoration: BoxDecoration(
-                  color:
-                  value > 5
-                      ? color.withOpacity(0.1)
-                      : AppColors.divider,
+                  color: value > 5 ? color.withOpacity(0.1) : AppColors.divider,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Icon(
@@ -414,9 +411,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                 padding: EdgeInsets.all(4.w),
                 decoration: BoxDecoration(
                   color:
-                  value < 60
-                      ? color.withOpacity(0.1)
-                      : AppColors.divider,
+                      value < 60 ? color.withOpacity(0.1) : AppColors.divider,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Icon(
@@ -433,16 +428,16 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
   }
 
   Widget _buildControlButtons(
-      FocusSessionService sessionService,
-      FocusSession? currentSession,
-      ) {
+    FocusSessionService sessionService,
+    FocusSession? currentSession,
+  ) {
     if (currentSession == null) {
       // Start button
       return AppButton(
         text: 'Start Focus Session',
         onPressed: () async {
           await sessionService.startFocusSession();
-          
+
           if (mounted && sessionService.currentSession != null) {
             Navigator.push(
               context,
@@ -631,32 +626,32 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
       context: context,
       builder:
           (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Text('Stop Session?', style: AppTextStyles.heading3),
-        content: Text(
-          'Are you sure you want to stop this session? Your progress will be saved.',
-          style: AppTextStyles.body,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Continue',
-              style: TextStyle(color: AppColors.textSecondary),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
+            title: Text('Stop Session?', style: AppTextStyles.heading3),
+            content: Text(
+              'Are you sure you want to stop this session? Your progress will be saved.',
+              style: AppTextStyles.body,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Continue',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  sessionService.stopSession();
+                },
+                style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                child: const Text('Stop'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              sessionService.stopSession();
-            },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Stop'),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -45,9 +45,7 @@ class BuddyDetailScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(50),
                 border: Border.all(color: buddy.getRarityColor(), width: 3),
               ),
-              child: Center(
-                child: Image.asset(buddy.image),
-              ),
+              child: Center(child: Image.asset(buddy.image)),
             ),
             SizedBox(height: 24.h),
 
@@ -88,17 +86,9 @@ class BuddyDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Species',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textHint,
-                    ),
-                  ),
+                  Text('Species', style: AppTextStyles.bodySmall.copyWith()),
                   SizedBox(height: 4.h),
-                  Text(
-                    buddy.species,
-                    style: AppTextStyles.body.copyWith(),
-                  ),
+                  Text(buddy.species, style: AppTextStyles.body.copyWith()),
                 ],
               ),
             ),
@@ -117,9 +107,7 @@ class BuddyDetailScreen extends StatelessWidget {
                 children: [
                   Text(
                     'Description',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textHint,
-                    ),
+                    style: AppTextStyles.bodySmall.copyWith(),
                   ),
                   SizedBox(height: 8.h),
                   Text(buddy.description, style: AppTextStyles.body),
@@ -132,24 +120,34 @@ class BuddyDetailScreen extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
                 color: AppColors.surface,
-                borderRadius: BorderRadius.circular(
-                  AppConstants.defaultRadius,
-                ),
+                borderRadius: BorderRadius.circular(AppConstants.defaultRadius),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
                 children: [
-                  Text(
-                    'Aura Points: ',
-                    style: AppTextStyles.bodySmall.copyWith(
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Aura Points: ',
+                        style: AppTextStyles.bodySmall.copyWith(),
+                      ),
+                      Text(
+                        '${buddy.auraPoints}/${buddy.getMaxPossibleAura()}',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: buddy.getRarityColor(),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
+                  SizedBox(height: 4.h),
                   Text(
-                    '${buddy.auraPoints}/${buddy.getMaxPossibleAura()}',
+                    'Finding the same buddy again has a chance to increase '
+                    'this score.',
                     style: AppTextStyles.bodySmall.copyWith(
-                      color: buddy.getRarityColor(),
-                      fontWeight: FontWeight.w600
-                  )
+                      color: AppColors.textHint,
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),

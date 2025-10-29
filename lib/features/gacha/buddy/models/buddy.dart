@@ -74,9 +74,7 @@ class Buddy {
   }
 
   // Create a copy with updated aura points
-  Buddy copyWith({
-    int? auraPoints,
-  }) {
+  Buddy copyWith({int? auraPoints}) {
     return Buddy(
       id: id,
       name: name,

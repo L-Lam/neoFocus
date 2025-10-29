@@ -9,7 +9,7 @@ final List<Buddy> allBuddies = [
     species: 'Tabby cat',
     description:
         'Utterly heartbroken his owners misspelled his name. Eats excessively '
-            'to cope with the pain.',
+        'to cope with the pain.',
     image: 'assets/images/buddies/SukiFinal.png',
   ),
   const Buddy(
@@ -19,7 +19,7 @@ final List<Buddy> allBuddies = [
     species: 'Angora rabbit',
     description:
         'Huge and fluffy! Sits and snoozes around all day. Cons: her excessive '
-            'fluff makes you sneeze a lot.',
+        'fluff makes you sneeze a lot.',
     image: 'assets/images/buddies/LittleBellFinal.png',
   ),
 
@@ -31,8 +31,8 @@ final List<Buddy> allBuddies = [
     species: 'Sphynx cat',
     description:
         'Used to be a killer, but became a changed cat after losing a life. '
-            'Secretly planning a rebellion against his owner. The reason? They '
-            'won\'t get him a scratching post.',
+        'Secretly planning a rebellion against his owner. The reason? They '
+        'won\'t get him a scratching post.',
     image: 'assets/images/buddies/QueenFinal.png',
   ),
   const Buddy(
@@ -42,8 +42,8 @@ final List<Buddy> allBuddies = [
     species: 'Grey wolf',
     description:
         'A respectable young fella in the wolf pack. Soon, he will lead his '
-            'pack. His friends don\'t know this, but he often howls beneath the '
-            'full moon to feel more ALPHA.',
+        'pack. His friends don\'t know this, but he often howls beneath the '
+        'full moon to feel more ALPHA.',
     image: 'assets/images/buddies/MoonlightFinal.png',
   ),
 
@@ -55,7 +55,7 @@ final List<Buddy> allBuddies = [
     species: 'Barn owl',
     description:
         'Always groomed and dripped out for the ladies. Still doesn\'t get any. '
-            'Maybe it\'s because of those eyes...',
+        'Maybe it\'s because of those eyes...',
     image: 'assets/images/buddies/ChromatiqueFinal.png',
   ),
   const Buddy(
@@ -65,8 +65,8 @@ final List<Buddy> allBuddies = [
     species: 'American flamingo',
     description:
         'He is very much in love. Wears a fedora and tie to look extra '
-            'professional. Really though, he\'s just a cornball, no offense. '
-            'Takes dance classes in hopes of attracting his crush one day.',
+        'professional. Really though, he\'s just a cornball, no offense. '
+        'Takes dance classes in hopes of attracting his crush one day.',
     image: 'assets/images/buddies/LoveDreamFinal.png',
   ),
 
@@ -78,8 +78,8 @@ final List<Buddy> allBuddies = [
     species: 'Arctic fox',
     description:
         'She is the princess of the snow, wielding a bone-chilling gaze and an '
-            'ice-cold demeanor. Stalks her prey, waiting for the right time to '
-            ' strike. It\'s totally not because she is awkward!',
+        'ice-cold demeanor. Stalks her prey, waiting for the right time to '
+        ' strike. It\'s totally not because she is awkward!',
     image: 'assets/images/buddies/WinterWindFinal.png',
   ),
   const Buddy(
@@ -89,8 +89,8 @@ final List<Buddy> allBuddies = [
     species: 'Bald eagle',
     description:
         'Always angry and aggressive. Led a coup to take administration of an '
-            'also angry nation. Almost conquered the world before he got exiled '
-            'to a tiny island. TWICE.',
+        'also angry nation. Almost conquered the world before he got exiled '
+        'to a tiny island. TWICE.',
     image: 'assets/images/buddies/RevolutionaryFinal.png',
   ),
 ];

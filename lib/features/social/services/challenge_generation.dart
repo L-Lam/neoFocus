@@ -28,8 +28,8 @@ class ChallengeGenerationService {
     final dailyChallenges = [
       {
         'title': 'Morning Focus',
-        'description': 'Complete 60 minutes of focused work before noon',
-        'targetMinutes': 60,
+        'description': 'Complete 50 minutes of focused work before noon',
+        'targetMinutes': 50,
         'rewardPoints': 50,
       },
       {

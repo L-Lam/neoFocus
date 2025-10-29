@@ -16,7 +16,9 @@ class AnalyticsService {
     }
 
     // Combine user data and sessions streams
-    return _firestore.collection('users').doc(user.uid).snapshots().asyncMap((userDoc) async {
+    return _firestore.collection('users').doc(user.uid).snapshots().asyncMap((
+      userDoc,
+    ) async {
       if (!userDoc.exists) {
         return _getEmptyAnalytics();
       }
@@ -32,15 +34,13 @@ class AnalyticsService {
       // Try to order by completedAt first, if that fails, use startTime
       QuerySnapshot sessionsSnapshot;
       try {
-        sessionsSnapshot = await sessionsQuery
-            .orderBy('completedAt', descending: true)
-            .get();
+        sessionsSnapshot =
+            await sessionsQuery.orderBy('completedAt', descending: true).get();
       } catch (e) {
         // If completedAt doesn't exist, try startTime
         try {
-          sessionsSnapshot = await sessionsQuery
-              .orderBy('startTime', descending: true)
-              .get();
+          sessionsSnapshot =
+              await sessionsQuery.orderBy('startTime', descending: true).get();
         } catch (e2) {
           // If neither exists, just get all sessions
           sessionsSnapshot = await sessionsQuery.get();
@@ -48,16 +48,13 @@ class AnalyticsService {
       }
 
       // Filter out active sessions if they exist
-      final completedSessions = sessionsSnapshot.docs.where((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return data['isActive'] != true;
-      }).toList();
+      final completedSessions =
+          sessionsSnapshot.docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data['isActive'] != true;
+          }).toList();
 
-      return AnalyticsData.fromFirestore(
-        userData,
-        completedSessions,
-        period,
-      );
+      return AnalyticsData.fromFirestore(userData, completedSessions, period);
     });
   }
 
@@ -147,10 +144,12 @@ class AnalyticsService {
       );
     }
 
-    return insights.isNotEmpty ? insights : [
-      'Welcome to Focus Hero! Complete your first focus session to start seeing your analytics.',
-      'Set a goal to focus for at least 25 minutes today.',
-    ];
+    return insights.isNotEmpty
+        ? insights
+        : [
+          'Welcome to Focus Hero! Complete your first focus session to start seeing your analytics.',
+          'Set a goal to focus for at least 25 minutes today.',
+        ];
   }
 
   // Add a test session for demonstration
@@ -202,7 +201,13 @@ class AnalyticsService {
 
       for (int j = 0; j < sessionsPerDay; j++) {
         final hour = random.nextInt(14) + 7; // 7 AM to 9 PM
-        final startTime = DateTime(date.year, date.month, date.day, hour, random.nextInt(60));
+        final startTime = DateTime(
+          date.year,
+          date.month,
+          date.day,
+          hour,
+          random.nextInt(60),
+        );
         final duration = [25, 25, 25, 50, 90][random.nextInt(5)];
 
         await _firestore
@@ -210,25 +215,28 @@ class AnalyticsService {
             .doc(user.uid)
             .collection('sessions')
             .add({
-          'startTime': Timestamp.fromDate(startTime),
-          'completedAt': Timestamp.fromDate(startTime.add(Duration(minutes: duration))),
-          'duration': duration,
-          'actualDuration': duration,
-          'category': ['Work', 'Study', 'Personal'][random.nextInt(3)],
-          'type': 'focus',
-          'isActive': false,
-          'wasCompleted': true,
-          'earnedXP': duration,
-        });
+              'startTime': Timestamp.fromDate(startTime),
+              'completedAt': Timestamp.fromDate(
+                startTime.add(Duration(minutes: duration)),
+              ),
+              'duration': duration,
+              'actualDuration': duration,
+              'category': ['Work', 'Study', 'Personal'][random.nextInt(3)],
+              'type': 'focus',
+              'isActive': false,
+              'wasCompleted': true,
+              'earnedXP': duration,
+            });
       }
     }
 
     // Calculate total stats
-    final sessionsSnapshot = await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('sessions')
-        .get();
+    final sessionsSnapshot =
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('sessions')
+            .get();
 
     int totalMinutes = 0;
     int totalXP = 0;
@@ -250,4 +258,3 @@ class AnalyticsService {
     });
   }
 }
-

@@ -61,9 +61,7 @@ class GachaService {
     final auraPoints = _generateAuraPoints(rarity);
 
     // Return buddy with aura points
-    return buddy.copyWith(
-      auraPoints: auraPoints,
-    );
+    return buddy.copyWith(auraPoints: auraPoints);
   }
 
   // Generate random aura points based on rarity (only Epic and Legendary)
@@ -110,9 +108,7 @@ class GachaService {
               ? existingBuddyObj.auraPoints
               : buddy.auraPoints;
 
-      await doc.reference.update({
-        'auraPoints': aura,
-      });
+      await doc.reference.update({'auraPoints': aura});
     }
   }
 
