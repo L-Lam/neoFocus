@@ -103,50 +103,9 @@ class UserService extends ChangeNotifier {
         .update({'preferences.$key': value});
   }
 
-  Future<void> addBlockedApp(String appName) async {
-    if (_currentUser == null) return;
-
-    final updatedApps = List<String>.from(_currentUser!.preferences.blockedApps)
-      ..add(appName);
-
-    await updateSinglePreference('blockedApps', updatedApps);
-  }
-
-  Future<void> removeBlockedApp(String appName) async {
-    if (_currentUser == null) return;
-
-    final updatedApps = List<String>.from(_currentUser!.preferences.blockedApps)
-      ..remove(appName);
-
-    await updateSinglePreference('blockedApps', updatedApps);
-  }
-
-  Future<void> addBlockedWebsite(String website) async {
-    if (_currentUser == null) return;
-
-    final updatedWebsites = List<String>.from(
-      _currentUser!.preferences.blockedWebsites,
-    )..add(website);
-
-    await updateSinglePreference('blockedWebsites', updatedWebsites);
-  }
-
-  Future<void> removeBlockedWebsite(String website) async {
-    if (_currentUser == null) return;
-
-    final updatedWebsites = List<String>.from(
-      _currentUser!.preferences.blockedWebsites,
-    )..remove(website);
-
-    await updateSinglePreference('blockedWebsites', updatedWebsites);
-  }
-
   Future<void> updateStats({
     int? totalFocusMinutes,
-    int? currentStreak,
-    int? longestStreak,
-    int? level,
-    int? totalXP,
+    int? dailyFocusMinutes,
   }) async {
     if (_currentUser == null) return;
 
@@ -154,10 +113,9 @@ class UserService extends ChangeNotifier {
     if (totalFocusMinutes != null) {
       updates['totalFocusMinutes'] = totalFocusMinutes;
     }
-    if (currentStreak != null) updates['currentStreak'] = currentStreak;
-    if (longestStreak != null) updates['longestStreak'] = longestStreak;
-    if (level != null) updates['level'] = level;
-    if (totalXP != null) updates['totalXP'] = totalXP;
+    if (dailyFocusMinutes != null) {
+      updates['dailyFocusMinutes'] = dailyFocusMinutes;
+    }
 
     if (updates.isNotEmpty) {
       await updateUserData(updates);
@@ -173,11 +131,8 @@ class UserService extends ChangeNotifier {
         .map((doc) {
           final data = doc.data() ?? {};
           return {
-            'level': data['level'] ?? 1,
-            'totalXP': data['totalXP'] ?? 0,
+            'dailyFocusMinutes': data['dailyFocusMinutes'] ?? 0,
             'totalFocusMinutes': data['totalFocusMinutes'] ?? 0,
-            'currentStreak': data['currentStreak'] ?? 0,
-            'longestStreak': data['longestStreak'] ?? 0,
             'completedSessions': data['completedSessions'] ?? 0,
             'totalTasks': data['totalTasks'] ?? 0,
           };
@@ -188,10 +143,8 @@ class UserService extends ChangeNotifier {
   Future<void> resetProgress(String uid) async {
     try {
       await FirebaseService.firestore.collection('users').doc(uid).update({
-        'level': 1,
-        'totalXP': 0,
+        'dailyFocusMinutes': 0,
         'totalFocusMinutes': 0,
-        'currentStreak': 0,
         'completedSessions': 0,
         'totalTasks': 0,
       });

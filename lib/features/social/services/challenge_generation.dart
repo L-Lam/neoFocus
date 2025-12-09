@@ -31,24 +31,28 @@ class ChallengeGenerationService {
         'description': 'Complete 50 minutes of focused work before noon',
         'targetMinutes': 50,
         'rewardPoints': 50,
+        'rewardCoins': 20,
       },
       {
         'title': 'Deep Work Session',
         'description': 'Complete a 90-minute uninterrupted focus session',
         'targetMinutes': 90,
         'rewardPoints': 75,
+        'rewardCoins': 20,
       },
       {
         'title': 'Pomodoro Master',
         'description': 'Complete 4 Pomodoro sessions (25 minutes each)',
         'targetMinutes': 100,
         'rewardPoints': 100,
+        'rewardCoins': 20,
       },
       {
         'title': 'Evening Study',
         'description': 'Focus for 45 minutes after 6 PM',
         'targetMinutes': 45,
         'rewardPoints': 40,
+        'rewardCoins': 20,
       },
     ];
 
@@ -74,6 +78,7 @@ class ChallengeGenerationService {
         'createdBy': 'system',
         'participantProgress': {},
         'rewardPoints': template['rewardPoints'],
+        'rewardCoins': template['rewardCoins'],
         'dateStr': todayStr,
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -110,6 +115,7 @@ class ChallengeGenerationService {
         'description': 'Complete 1000 minutes of focus this winter season',
         'targetMinutes': 1000,
         'rewardPoints': 500,
+        'rewardCoins': 2000,
         'emoji': '❄️',
       },
       'spring': {
@@ -117,6 +123,7 @@ class ChallengeGenerationService {
         'description': 'Grow your focus to 1200 minutes this spring',
         'targetMinutes': 1200,
         'rewardPoints': 600,
+        'rewardCoins': 2000,
         'emoji': '🌸',
       },
       'summer': {
@@ -124,6 +131,7 @@ class ChallengeGenerationService {
         'description': 'Stay productive with 1500 minutes of focus this summer',
         'targetMinutes': 1500,
         'rewardPoints': 750,
+        'rewardCoins': 2000,
         'emoji': '☀️',
       },
       'fall': {
@@ -131,6 +139,7 @@ class ChallengeGenerationService {
         'description': 'Harvest 1000 minutes of productive time this fall',
         'targetMinutes': 1000,
         'rewardPoints': 500,
+        'rewardCoins': 2000,
         'emoji': '🍂',
       },
     };
@@ -151,6 +160,7 @@ class ChallengeGenerationService {
       'createdBy': 'system',
       'participantProgress': {},
       'rewardPoints': template['rewardPoints'],
+      'rewardCoins': template['rewardCoins'],
       'seasonalTheme': season,
       'year': year,
       'createdAt': FieldValue.serverTimestamp(),

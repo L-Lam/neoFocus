@@ -9,6 +9,7 @@ import '../../buddy/widgets/buddy_card_widget.dart';
 import '../../buddy/screens/inventory_screen.dart';
 import '../../buddy/screens/buddy_detail_screen.dart';
 import 'droprates_screen.dart';
+import 'store_screen.dart';
 
 class GachaScreen extends StatefulWidget {
   const GachaScreen({super.key});
@@ -30,6 +31,15 @@ class _GachaScreenState extends State<GachaScreen> {
       if (mounted) {
         _showPullResult([buddy]);
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isPulling = false);
@@ -46,6 +56,15 @@ class _GachaScreenState extends State<GachaScreen> {
       final buddies = await GachaService.sixPull();
       if (mounted) {
         _showPullResult(buddies);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -135,7 +154,6 @@ class _GachaScreenState extends State<GachaScreen> {
           buddy: buddy,
           isUnlocked: true,
           onTap: () {
-            Navigator.pop(context);
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -163,7 +181,6 @@ class _GachaScreenState extends State<GachaScreen> {
           buddy: buddy,
           isUnlocked: true,
           onTap: () {
-            Navigator.pop(context);
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -191,6 +208,16 @@ class _GachaScreenState extends State<GachaScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.store),
+            color: AppColors.textPrimary,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const StoreScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.info_outline),
             color: AppColors.textPrimary,
             onPressed: () {
@@ -216,31 +243,70 @@ class _GachaScreenState extends State<GachaScreen> {
         padding: EdgeInsets.all(20.w),
         child: Column(
           children: [
+            // Pity Counter Bar
+            FutureBuilder<int>(
+              future: GachaService.getPityCounter(),
+              builder: (context, snapshot) {
+                final pityCounter = snapshot.data ?? 0;
+                final progress = pityCounter / 72.0;
+
+                return Container(
+                  padding: EdgeInsets.all(16.w),
+                  margin: EdgeInsets.only(bottom: 20.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.defaultRadius,
+                    ),
+                    border: Border.all(
+                      color: AppColors.warning.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '✨ Legendary Pity',
+                            style: AppTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            '$pityCounter / 72',
+                            style: AppTextStyles.body.copyWith(
+                              color: AppColors.warning,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      LinearProgressIndicator(
+                        value: progress,
+                        backgroundColor: AppColors.divider,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.warning,
+                        ),
+                        minHeight: 8.h,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
             Container(
               width: double.infinity,
               height: 400,
-              padding: EdgeInsets.all(20.w),
               decoration: BoxDecoration(
-                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-                border: Border.all(
-                  color: AppColors.primary.withOpacity(0.3),
-                  width: 2,
-                ),
               ),
-              child: Column(
-                children: [
-                  Text('🎲', style: TextStyle(fontSize: 48.sp)),
-                  SizedBox(height: 12.h),
-                  Text('Collect Buddies', style: AppTextStyles.heading3),
-                  SizedBox(height: 4.h),
-                  Text(
-                    'Pull to get companions',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textHint,
-                    ),
-                  ),
-                ],
+              clipBehavior: Clip.antiAlias,
+              child: Image.asset(
+                'assets/legacy/GachaBanner.png',
+                fit: BoxFit.cover,
               ),
             ),
             SizedBox(height: 20.h),

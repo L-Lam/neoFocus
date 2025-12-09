@@ -1,37 +1,37 @@
 import 'package:flutter/material.dart';
 
-enum BuddyRarity { common, rare, epic, legendary }
+enum BuddyRarity { common, rare, exotic, unique }
+
+enum BuddySource { gacha, shop }
 
 class Buddy {
   final String id;
   final String name;
   final BuddyRarity rarity;
-  final String species;
   final String description;
   final String image;
   final int auraPoints;
+  final List<BuddySource> source;
+  final int duplicate;
 
   const Buddy({
     required this.id,
     required this.name,
     required this.rarity,
-    required this.species,
     required this.description,
     required this.image,
     this.auraPoints = 0,
+    this.source = const [BuddySource.gacha, BuddySource.shop],
+    this.duplicate = 1,
   });
 
   // Get max possible aura for this rarity
   int getMaxPossibleAura() {
     switch (rarity) {
-      case BuddyRarity.common:
-        return 100;
-      case BuddyRarity.rare:
-        return 500;
-      case BuddyRarity.epic:
-        return 2000;
-      case BuddyRarity.legendary:
+      case BuddyRarity.exotic || BuddyRarity.unique:
         return 10000;
+      default:
+        return 1000;
     }
   }
 
@@ -42,10 +42,10 @@ class Buddy {
         return Colors.grey;
       case BuddyRarity.rare:
         return Colors.blue;
-      case BuddyRarity.epic:
-        return Colors.purple;
-      case BuddyRarity.legendary:
+      case BuddyRarity.exotic:
         return Colors.red;
+      case BuddyRarity.unique:
+        return Colors.purpleAccent;
     }
   }
 
@@ -54,10 +54,11 @@ class Buddy {
       'id': id,
       'name': name,
       'rarity': rarity.name,
-      'species': species,
       'description': description,
       'image': image,
       'auraPoints': auraPoints,
+      'sources': source.map((s) => s.name).toList(),
+      'duplicateCount': duplicate,
     };
   }
 
@@ -66,23 +67,29 @@ class Buddy {
       id: json['id'] as String,
       name: json['name'] as String,
       rarity: BuddyRarity.values.firstWhere((e) => e.name == json['rarity']),
-      species: json['species'] as String,
       description: json['description'] as String,
       image: json['image'] as String,
       auraPoints: json['auraPoints'] as int? ?? 0,
+      source:
+          (json['sources'] as List<dynamic>?)
+              ?.map((s) => BuddySource.values.firstWhere((e) => e.name == s))
+              .toList() ??
+          [BuddySource.gacha, BuddySource.shop],
+      duplicate: json['duplicateCount'] as int? ?? 1,
     );
   }
 
-  // Create a copy with updated aura points
-  Buddy copyWith({int? auraPoints}) {
+  // Create a copy with updated fields
+  Buddy copyWith({int? auraPoints, int? duplicateCount}) {
     return Buddy(
       id: id,
       name: name,
       rarity: rarity,
-      species: species,
       description: description,
       image: image,
       auraPoints: auraPoints ?? this.auraPoints,
+      source: source,
+      duplicate: duplicateCount ?? this.duplicate,
     );
   }
 }

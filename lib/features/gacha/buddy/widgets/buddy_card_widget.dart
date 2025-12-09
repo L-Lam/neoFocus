@@ -35,9 +35,10 @@ class BuddyCardWidget extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Image or locked state
-                Expanded(
-                  flex: 3,
+                // Image or locked state (fixed size, doesn't shrink)
+                SizedBox(
+                  height:
+                      constraints.maxHeight * 0.6, // Fixed 60% of card height
                   child: Padding(
                     padding: EdgeInsets.all(8 * scale),
                     child:
@@ -56,19 +57,23 @@ class BuddyCardWidget extends StatelessWidget {
                   ),
                 ),
 
-                // Name or locked
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8 * scale),
-                  child: Text(
-                    isUnlocked ? buddy.name : '???',
-                    style: TextStyle(
-                      fontSize: 18 * scale,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                // Name or locked (flexible, can shrink)
+                Flexible(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8 * scale),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        isUnlocked ? buddy.name : '???',
+                        style: TextStyle(
+                          fontSize: 18 * scale,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 SizedBox(height: 4 * scale),

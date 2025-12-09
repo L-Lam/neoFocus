@@ -218,17 +218,21 @@ class SocialService {
 
   // Leaderboard
   static Stream<List<Friend>> getGlobalLeaderboard({int limit = 20}) {
+    // Only show users active in the last 30 days
+    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+
     return _firestore
         .collection('users')
-        .orderBy('totalFocusMinutes', descending: true)
+        .where('lastLoginAt', isGreaterThan: Timestamp.fromDate(thirtyDaysAgo))
+        .orderBy('eloRating', descending: true)
         .limit(limit)
         .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => Friend.fromMap({...doc.data(), 'uid': doc.id}))
-                  .toList(),
-        );
+        .map((snapshot) {
+          print('[LEADERBOARD] Got ${snapshot.docs.length} users');
+          return snapshot.docs
+              .map((doc) => Friend.fromMap({...doc.data(), 'uid': doc.id}))
+              .toList();
+        });
   }
 
   static Stream<List<Friend>> getFriendsLeaderboard() {

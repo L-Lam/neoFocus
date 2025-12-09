@@ -9,7 +9,6 @@ import '../../../widgets/loading_indicator.dart';
 import '../widgets/settings_section.dart';
 import '../widgets/settings_tile.dart';
 import 'focus_settings_screen.dart';
-import 'blocked_apps_screen.dart';
 import 'about_screen.dart';
 import 'notification_settings_screen.dart';
 
@@ -54,19 +53,6 @@ class SettingsScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => const FocusSettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                SettingsTile(
-                  icon: Icons.block,
-                  title: 'Blocked Apps & Websites',
-                  subtitle: 'Manage your blocklist',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const BlockedAppsScreen(),
                       ),
                     );
                   },

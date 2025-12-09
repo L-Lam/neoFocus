@@ -31,7 +31,13 @@ class _DropRatesScreenState extends State<DropRatesScreen> {
   }
 
   List<Buddy> _getBuddiesByRarity(BuddyRarity rarity) {
-    final buddies = allBuddies.where((b) => b.rarity == rarity).toList();
+    final buddies =
+        allBuddies
+            .where(
+              (b) =>
+                  b.rarity == rarity && b.source.contains(BuddySource.gacha),
+            )
+            .toList();
     // Sort by ID (handle both numeric and old string IDs)
     buddies.sort((a, b) {
       final aId = int.tryParse(a.id) ?? 999;
@@ -48,7 +54,7 @@ class _DropRatesScreenState extends State<DropRatesScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        title: Text('Available Buddies', style: AppTextStyles.heading3),
+        title: Text('Available Bobbys', style: AppTextStyles.heading3),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           color: AppColors.textPrimary,
@@ -60,7 +66,7 @@ class _DropRatesScreenState extends State<DropRatesScreen> {
         children: [
           // Common
           _buildRaritySection(
-            'Common (65%)',
+            'Common (85%)',
             BuddyRarity.common,
             _getBuddiesByRarity(BuddyRarity.common),
           ),
@@ -68,25 +74,25 @@ class _DropRatesScreenState extends State<DropRatesScreen> {
 
           // Rare
           _buildRaritySection(
-            'Rare (25%)',
+            'Rare (13%)',
             BuddyRarity.rare,
             _getBuddiesByRarity(BuddyRarity.rare),
           ),
           SizedBox(height: 20.h),
 
-          // Epic
+          // Exotic
           _buildRaritySection(
-            'Epic (8%)',
-            BuddyRarity.epic,
-            _getBuddiesByRarity(BuddyRarity.epic),
+            'Exotic (2%)',
+            BuddyRarity.exotic,
+            _getBuddiesByRarity(BuddyRarity.exotic),
           ),
           SizedBox(height: 20.h),
 
           // Legendary
           _buildRaritySection(
-            'Legendary (2%)',
-            BuddyRarity.legendary,
-            _getBuddiesByRarity(BuddyRarity.legendary),
+            'Unique',
+            BuddyRarity.unique,
+            _getBuddiesByRarity(BuddyRarity.unique),
           ),
         ],
       ),
@@ -119,7 +125,6 @@ class _DropRatesScreenState extends State<DropRatesScreen> {
     BuddyRarity rarity,
     List<Buddy> buddies,
   ) {
-    // Use first buddy to get color (all buddies of same rarity have same color)
     final color =
         buddies.isNotEmpty ? buddies.first.getRarityColor() : Colors.grey;
 

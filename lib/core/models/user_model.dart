@@ -4,30 +4,32 @@ class UserModel {
   final String uid;
   final String email;
   final String displayName;
-  final int level;
-  final int totalXP;
+  final int dailyFocusMinutes;
   final int totalFocusMinutes;
-  final int currentStreak;
-  final int longestStreak;
+  final int coins;
+  final int maxEloRating;
+  final int eloRating;
+  final int eloDelta;
+  final int totalAuraPoints;
   final DateTime createdAt;
   final DateTime lastLoginAt;
   final UserPreferences preferences;
-  final String? photoUrl;
   final String? bio;
 
   UserModel({
     required this.uid,
     required this.email,
     required this.displayName,
-    required this.level,
-    required this.totalXP,
+    required this.dailyFocusMinutes,
     required this.totalFocusMinutes,
-    required this.currentStreak,
-    required this.longestStreak,
+    required this.coins,
+    required this.maxEloRating,
+    required this.eloRating,
+    required this.eloDelta,
+    required this.totalAuraPoints,
     required this.createdAt,
     required this.lastLoginAt,
     required this.preferences,
-    this.photoUrl,
     this.bio,
   });
 
@@ -44,15 +46,16 @@ class UserModel {
       uid: map['uid'] ?? '',
       email: map['email'] ?? '',
       displayName: map['displayName'] ?? 'Focus Hero',
-      level: map['level'] ?? 1,
-      totalXP: map['totalXP'] ?? 0,
+      dailyFocusMinutes: map['dailyFocusMinutes'] ?? 0,
       totalFocusMinutes: map['totalFocusMinutes'] ?? 0,
-      currentStreak: map['currentStreak'] ?? 0,
-      longestStreak: map['longestStreak'] ?? 0,
+      coins: map['coins'] ?? 0,
+      maxEloRating: map['maxEloRating'] ?? 0,
+      eloRating: map['eloRating'] ?? 0,
+      eloDelta: map['eloDelta'] ?? 0,
+      totalAuraPoints: map['totalAuraPoints'] ?? 0,
       createdAt: getTimestamp(map['createdAt'], DateTime.now()),
       lastLoginAt: getTimestamp(map['lastLoginAt'], DateTime.now()),
       preferences: UserPreferences.fromMap(map['preferences'] ?? {}),
-      photoUrl: map['photoUrl'],
       bio: map['bio'],
     );
   }
@@ -62,15 +65,16 @@ class UserModel {
       'uid': uid,
       'email': email,
       'displayName': displayName,
-      'level': level,
-      'totalXP': totalXP,
+      'dailyFocusMinutes': dailyFocusMinutes,
       'totalFocusMinutes': totalFocusMinutes,
-      'currentStreak': currentStreak,
-      'longestStreak': longestStreak,
+      'coins': coins,
+      'maxEloRating': maxEloRating,
+      'eloRating': eloRating,
+      'eloDelta': eloDelta,
+      'totalAuraPoints': totalAuraPoints,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLoginAt': Timestamp.fromDate(lastLoginAt),
       'preferences': preferences.toMap(),
-      'photoUrl': photoUrl,
       'bio': bio,
     };
   }
@@ -85,8 +89,6 @@ class UserPreferences {
   final bool vibrationEnabled;
   final bool darkModeEnabled;
   final String focusReminderTime;
-  final List<String> blockedApps;
-  final List<String> blockedWebsites;
 
   UserPreferences({
     required this.focusDuration,
@@ -97,8 +99,6 @@ class UserPreferences {
     required this.vibrationEnabled,
     required this.darkModeEnabled,
     required this.focusReminderTime,
-    required this.blockedApps,
-    required this.blockedWebsites,
   });
 
   factory UserPreferences.fromMap(Map<String, dynamic> map) {
@@ -111,8 +111,6 @@ class UserPreferences {
       vibrationEnabled: map['vibrationEnabled'] ?? true,
       darkModeEnabled: map['darkModeEnabled'] ?? false,
       focusReminderTime: map['focusReminderTime'] ?? '09:00',
-      blockedApps: List<String>.from(map['blockedApps'] ?? []),
-      blockedWebsites: List<String>.from(map['blockedWebsites'] ?? []),
     );
   }
 
@@ -126,8 +124,6 @@ class UserPreferences {
       'vibrationEnabled': vibrationEnabled,
       'darkModeEnabled': darkModeEnabled,
       'focusReminderTime': focusReminderTime,
-      'blockedApps': blockedApps,
-      'blockedWebsites': blockedWebsites,
     };
   }
 
@@ -152,8 +148,6 @@ class UserPreferences {
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       darkModeEnabled: darkModeEnabled ?? this.darkModeEnabled,
       focusReminderTime: focusReminderTime ?? this.focusReminderTime,
-      blockedApps: blockedApps ?? this.blockedApps,
-      blockedWebsites: blockedWebsites ?? this.blockedWebsites,
     );
   }
 }

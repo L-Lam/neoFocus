@@ -8,107 +8,201 @@ class GachaService {
   static final _random = Random();
 
   // Pull rates
-  static const double commonRate = 0.65;
-  static const double rareRate = 0.25;
-  static const double epicRate = 0.08;
-  static const double legendaryRate = 0.02;
+  static const double commonRate = 0.645;
+  static const double rareRate = 0.13;
+  static const double exoticRate = 0.02;
+  static const double uniqueRate = 0.005;
 
   // Coin refunds (0 for now, can be changed later)
   static const int commonRefund = 0;
   static const int rareRefund = 0;
 
+  // Costs
+  static const int singlePullCost = 100;
+  static const int sixPullCost = 600;
+
+  // Pity system
+  static const int legendaryPityCount = 72;
+
   // Single pull
   static Future<Buddy> singlePull() async {
-    final buddy = _performPull();
-    await _addToInventory(buddy);
+    final userDoc = FirebaseService.currentUserDoc;
+    if (userDoc == null) throw Exception('User not logged in');
+
+    // Check coins
+    final userSnapshot = await userDoc.get();
+    final userData = userSnapshot.data() as Map<String, dynamic>?;
+    final currentCoins = userData?['coins'] ?? 0;
+
+    if (currentCoins < singlePullCost) {
+      throw Exception('Not enough coins! You need $singlePullCost coins.');
+    }
+
+    // Get pity counter
+    final pityCounter = userData?['gachaPityCounter'] ?? 0;
+
+    // Deduct coins
+    await userDoc.update({'coins': FieldValue.increment(-singlePullCost)});
+
+    // Perform pull (without aura - will be rolled in addBuddyToInventory)
+    final buddy = await _performPullWithPity(pityCounter);
+    await addBuddyToInventory(buddy);
+
+    // Update pity counter
+    if (buddy.rarity == BuddyRarity.exotic) {
+      await userDoc.update({'gachaPityCounter': 0});
+    } else {
+      await userDoc.update({'gachaPityCounter': pityCounter + 1});
+    }
+
     return buddy;
   }
 
   // 6 pull
   static Future<List<Buddy>> sixPull() async {
+    final userDoc = FirebaseService.currentUserDoc;
+    if (userDoc == null) throw Exception('User not logged in');
+
+    // Check coins
+    final userSnapshot = await userDoc.get();
+    final userData = userSnapshot.data() as Map<String, dynamic>?;
+    final currentCoins = userData?['coins'] ?? 0;
+
+    if (currentCoins < sixPullCost) {
+      throw Exception('Not enough coins! You need $sixPullCost coins.');
+    }
+
+    // Get pity counter
+    int pityCounter = userData?['gachaPityCounter'] ?? 0;
+
+    // Deduct coins
+    await userDoc.update({'coins': FieldValue.increment(-sixPullCost)});
+
     final List<Buddy> results = [];
     for (int i = 0; i < 6; i++) {
-      final buddy = _performPull();
+      // Perform pull (without aura - will be rolled in addBuddyToInventory)
+      final buddy = await _performPullWithPity(pityCounter);
       results.add(buddy);
-      await _addToInventory(buddy);
+      await addBuddyToInventory(buddy);
+
+      // Update pity counter
+      if (buddy.rarity == BuddyRarity.exotic ||
+          buddy.rarity == BuddyRarity.unique) {
+        pityCounter = 0;
+      } else {
+        pityCounter++;
+      }
     }
+
+    // Save final pity counter
+    await userDoc.update({'gachaPityCounter': pityCounter});
+
     return results;
   }
 
-  // Perform a single pull based on rates
-  static Buddy _performPull() {
-    final roll = _random.nextDouble();
-
+  // Perform a single pull with pity system
+  static Future<Buddy> _performPullWithPity(int pityCounter) async {
     BuddyRarity rarity;
-    if (roll < legendaryRate) {
-      rarity = BuddyRarity.legendary;
-    } else if (roll < legendaryRate + epicRate) {
-      rarity = BuddyRarity.epic;
-    } else if (roll < legendaryRate + epicRate + rareRate) {
-      rarity = BuddyRarity.rare;
+
+    // Check if pity triggers (70 pulls without legendary)
+    if (pityCounter >= legendaryPityCount - 1) {
+      rarity = BuddyRarity.exotic;
     } else {
-      rarity = BuddyRarity.common;
+      // Normal pull rates
+      final roll = _random.nextDouble();
+
+      if (roll < uniqueRate) {
+        rarity = BuddyRarity.unique;
+      } else if (roll < uniqueRate + exoticRate) {
+        rarity = BuddyRarity.exotic;
+      } else if (roll < uniqueRate + exoticRate + rareRate) {
+        rarity = BuddyRarity.rare;
+      } else {
+        rarity = BuddyRarity.common;
+      }
     }
 
-    // Get all buddies of this rarity
     final buddiesOfRarity =
-        allBuddies.where((b) => b.rarity == rarity).toList();
+        allBuddies
+            .where(
+              (b) =>
+                  b.rarity == rarity && b.source.contains(BuddySource.gacha),
+            )
+            .toList();
 
-    // Pick a random one
     final buddy = buddiesOfRarity[_random.nextInt(buddiesOfRarity.length)];
 
-    // Generate aura points based on rarity
-    final auraPoints = _generateAuraPoints(rarity);
+    final auraPoints = generateAuraPoints(rarity);
 
-    // Return buddy with aura points
     return buddy.copyWith(auraPoints: auraPoints);
   }
 
-  // Generate random aura points based on rarity (only Epic and Legendary)
-  static int _generateAuraPoints(BuddyRarity rarity) {
+  // Get current pity counter
+  static Future<int> getPityCounter() async {
+    final userDoc = FirebaseService.currentUserDoc;
+    if (userDoc == null) return 0;
+
+    final snapshot = await userDoc.get();
+    final userData = snapshot.data() as Map<String, dynamic>?;
+    return userData?['gachaPityCounter'] ?? 0;
+  }
+
+  // Generate random aura points based on rarity
+  static int generateAuraPoints(BuddyRarity rarity) {
     switch (rarity) {
-      case BuddyRarity.common:
-        return _random.nextInt(101);
-      case BuddyRarity.rare:
-        return _random.nextInt(501);
-      case BuddyRarity.epic:
-        return _random.nextInt(2001);
-      case BuddyRarity.legendary:
+      case BuddyRarity.exotic || BuddyRarity.unique:
         return _random.nextInt(10001);
+      default:
+        return _random.nextInt(1001);
     }
   }
 
-  // Add buddy to user's inventory (update aura if duplicate)
-  static Future<void> _addToInventory(Buddy buddy) async {
+  // CORE METHOD: Add buddy to inventory (used by both gacha and store)
+  // Handles new buddies and aura rerolls for duplicates
+  static Future<void> addBuddyToInventory(Buddy buddy) async {
     final userDoc = FirebaseService.currentUserDoc;
     if (userDoc == null) return;
 
-    // Check if buddy already exists in inventory
-    final existingBuddy =
-        await userDoc
-            .collection('inventory')
-            .where('id', isEqualTo: buddy.id)
-            .limit(1)
-            .get();
+    try {
+      final existingBuddy =
+          await userDoc
+              .collection('inventory')
+              .where('id', isEqualTo: buddy.id)
+              .limit(1)
+              .get();
 
-    if (existingBuddy.docs.isEmpty) {
-      // First time getting this buddy
-      await userDoc.collection('inventory').add({
-        ...buddy.toJson(),
-        'pulledAt': FieldValue.serverTimestamp(),
-      });
-    } else {
-      // Buddy already exists - update aura points
-      final doc = existingBuddy.docs.first;
-      final existingData = doc.data();
-      final existingBuddyObj = Buddy.fromJson(existingData);
+      if (existingBuddy.docs.isEmpty) {
+        await userDoc.collection('inventory').add({
+          ...buddy.toJson(),
+          'acquiredAt': FieldValue.serverTimestamp(),
+          'duplicateCount': 1,
+        });
+        return;
+      }
 
-      final aura =
-          existingBuddyObj.auraPoints > buddy.auraPoints
-              ? existingBuddyObj.auraPoints
-              : buddy.auraPoints;
+      // Buddy already exists - increment duplicate count
+      final currentData = existingBuddy.docs.first.data();
+      final currentAura = currentData['auraPoints'] as int;
+      final currentDuplicates = currentData['duplicateCount'] as int? ?? 1;
+      final newAura = generateAuraPoints(buddy.rarity);
 
-      await doc.reference.update({'auraPoints': aura});
+      final updates = <String, dynamic>{
+        'duplicateCount': currentDuplicates + 1,
+      };
+
+      if (newAura > currentAura) {
+        updates['auraPoints'] = newAura;
+
+        // Update total aura points
+        final auraDiff = newAura - currentAura;
+        await userDoc.update({
+          'totalAuraPoints': FieldValue.increment(auraDiff),
+        });
+      }
+
+      await existingBuddy.docs.first.reference.update(updates);
+    } catch (e) {
+      //
     }
   }
 
@@ -143,8 +237,8 @@ class GachaService {
         return commonRefund;
       case BuddyRarity.rare:
         return rareRefund;
-      case BuddyRarity.epic:
-      case BuddyRarity.legendary:
+      case BuddyRarity.exotic:
+      case BuddyRarity.unique:
         return 0;
     }
   }

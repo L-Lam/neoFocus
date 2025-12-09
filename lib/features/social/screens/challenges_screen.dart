@@ -30,7 +30,6 @@ class _ChallengesScreenState extends State<ChallengesScreen>
   }
 
   Future<void> _initializeChallenges() async {
-    // Generate challenges on first load
     await ChallengeGenerationService.generateDailyChallenges();
     await ChallengeGenerationService.generateSeasonalChallenges();
     await ChallengeGenerationService.cleanupExpiredChallenges();

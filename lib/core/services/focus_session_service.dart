@@ -263,17 +263,11 @@ class FocusSessionService extends ChangeNotifier {
     // Update user stats
     await _userService.updateStats(
       totalFocusMinutes: user.totalFocusMinutes + minutesFocused,
+      dailyFocusMinutes: user.dailyFocusMinutes + minutesFocused,
     );
 
     // Check for streak
     await _updateStreak();
-
-    // Add XP for completing a focus session
-    final xpGained = 20; // 20 XP per completed pomodoro
-    await _userService.updateStats(
-      totalXP: user.totalXP + xpGained,
-      level: ((user.totalXP + xpGained) / 100).floor() + 1,
-    );
   }
 
   // Update streak
@@ -296,9 +290,6 @@ class FocusSessionService extends ChangeNotifier {
             .get();
 
     if (todaysSessions.docs.isNotEmpty) {
-      // Update streak
-      int newStreak = user.currentStreak;
-
       // Check if yesterday had a session
       final yesterday = today.subtract(const Duration(days: 1));
       final startOfYesterday = DateTime(
@@ -318,17 +309,6 @@ class FocusSessionService extends ChangeNotifier {
               .where('type', isEqualTo: 'focus')
               .where('status', isEqualTo: 'completed')
               .get();
-
-      if (yesterdaysSessions.docs.isNotEmpty) {
-        newStreak = user.currentStreak + 1;
-      } else {
-        newStreak = 1; // Reset streak to 1
-      }
-
-      await _userService.updateStats(
-        currentStreak: newStreak,
-        longestStreak: newStreak > user.longestStreak ? newStreak : null,
-      );
     }
   }
 

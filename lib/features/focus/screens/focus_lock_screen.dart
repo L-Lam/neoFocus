@@ -245,7 +245,7 @@ class _FocusLockScreenState extends State<FocusLockScreen>
                                     onPressed:
                                         () => sessionService.resumeSession(),
                                   ),
-                                SizedBox(width: 24.w),
+                                SizedBox(width: 8.w),
                                 _buildControlButton(
                                   icon: Icons.stop,
                                   onPressed: _showStopConfirmation,

@@ -45,7 +45,15 @@ class BuddyDetailScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(50),
                 border: Border.all(color: buddy.getRarityColor(), width: 3),
               ),
-              child: Center(child: Image.asset(buddy.image)),
+              clipBehavior: Clip.hardEdge,
+              child: Transform.translate(
+                offset: const Offset(0, 25),
+                child: Image.asset(
+                  buddy.image,
+                  fit: BoxFit.contain,
+                  height: 480.w,
+                ),
+              ),
             ),
             SizedBox(height: 24.h),
 
@@ -75,7 +83,7 @@ class BuddyDetailScreen extends StatelessWidget {
             ),
             SizedBox(height: 24.h),
 
-            // Species
+            // Where to Find
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(16.w),
@@ -86,9 +94,72 @@ class BuddyDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Species', style: AppTextStyles.bodySmall.copyWith()),
-                  SizedBox(height: 4.h),
-                  Text(buddy.species, style: AppTextStyles.body.copyWith()),
+                  Text(
+                    'Where to Find',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Row(
+                    children: [
+                      if (buddy.source.contains(BuddySource.gacha))
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 8.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: buddy.getRarityColor().withValues(
+                              alpha: 0.15,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: buddy.getRarityColor().withValues(
+                                alpha: 0.3,
+                              ),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                                'Gacha',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: buddy.getRarityColor(),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                        ),
+                      if (buddy.source.contains(BuddySource.gacha) &&
+                          buddy.source.contains(BuddySource.shop))
+                        SizedBox(width: 8.w),
+                      if (buddy.source.contains(BuddySource.shop))
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 8.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: buddy.getRarityColor().withValues(
+                              alpha: 0.15,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: buddy.getRarityColor().withValues(
+                                alpha: 0.3,
+                              ),
+                              width: 1,
+                            ),
+                          ),
+                          child:                               Text(
+                            'Store',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: buddy.getRarityColor(),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -115,6 +186,8 @@ class BuddyDetailScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16.h),
+
+            // How many times found?
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(16.w),
@@ -125,11 +198,52 @@ class BuddyDetailScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                          children: [
+                            const TextSpan(text: 'You found me '),
+                            TextSpan(
+                              text: '${buddy.duplicate}',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: buddy.getRarityColor(),
+                              ),
+                            ),
+                            const TextSpan(text: ' time(s)!'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16.h),
+            // Aura Points Card
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppConstants.defaultRadius),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Aura Points: ',
-                        style: AppTextStyles.bodySmall.copyWith(),
+                        'Aura Points',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       Text(
                         '${buddy.auraPoints}/${buddy.getMaxPossibleAura()}',
@@ -140,10 +254,20 @@ class BuddyDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 8.h),
+                  // Progress bar
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: buddy.auraPoints / buddy.getMaxPossibleAura(),
+                      backgroundColor: AppColors.divider,
+                      color: buddy.getRarityColor(),
+                      minHeight: 8.h,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
                   Text(
-                    'Finding the same buddy again has a chance to increase '
-                    'this score.',
+                    'My aura points might increase everytime you find me again!',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.textHint,
                       fontSize: 13,
@@ -152,28 +276,10 @@ class BuddyDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
+            SizedBox(height: 16.h),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildAuraStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.caption.copyWith(color: AppColors.textHint),
-        ),
-        SizedBox(height: 4.h),
-        Text(
-          value,
-          style: AppTextStyles.body.copyWith(
-            color: color,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
     );
   }
 }

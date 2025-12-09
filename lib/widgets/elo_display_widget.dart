@@ -6,7 +6,7 @@ import '../core/services/elo_service.dart';
 
 class EloDisplayWidget extends StatelessWidget {
   final int eloRating;
-  final String eloRank;
+  final int eloRank;
   final bool showRankIcon;
   final bool isCompact;
 
@@ -105,7 +105,7 @@ class EloDisplayWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              eloRank,
+              '$eloRank',
               style: AppTextStyles.body.copyWith(
                 color: rankColor,
                 fontWeight: FontWeight.w600,

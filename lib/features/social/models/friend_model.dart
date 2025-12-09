@@ -7,6 +7,7 @@ class Friend {
   final int level;
   final int totalFocusMinutes;
   final int currentStreak;
+  final int eloRating;
   final String? photoUrl;
   final DateTime? lastActiveAt;
 
@@ -17,6 +18,7 @@ class Friend {
     required this.level,
     required this.totalFocusMinutes,
     required this.currentStreak,
+    required this.eloRating,
     this.photoUrl,
     this.lastActiveAt,
   });
@@ -29,6 +31,7 @@ class Friend {
       level: map['level'] ?? 1,
       totalFocusMinutes: map['totalFocusMinutes'] ?? 0,
       currentStreak: map['currentStreak'] ?? 0,
+      eloRating: map['eloRating'] ?? 1200,
       photoUrl: map['photoUrl'],
       lastActiveAt:
           map['lastActiveAt'] != null
@@ -45,6 +48,7 @@ class Friend {
       'level': level,
       'totalFocusMinutes': totalFocusMinutes,
       'currentStreak': currentStreak,
+      'eloRating': eloRating,
       'photoUrl': photoUrl,
       'lastActiveAt':
           lastActiveAt != null ? Timestamp.fromDate(lastActiveAt!) : null,

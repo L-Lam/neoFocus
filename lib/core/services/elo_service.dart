@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'dart:math';
 import '../../../core/services/firebase_service.dart';
 
@@ -8,17 +7,15 @@ class EloService {
   static final FirebaseFirestore _firestore = FirebaseService.firestore;
 
   // ELO Constants
-  static const int _initialElo = 1200;
-  static const int _kFactor = 32; // How much ratings can change
-  static const double _focusGoalMinutes = 90.0; // Daily goal
+  static const int _initialElo = 1000;
+  static const int eloDelta = 16; // How much ratings can change
 
   // Initialize ELO for new users
   static Future<void> initializeUserElo(String userId) async {
     await _firestore.collection('users').doc(userId).update({
       'eloRating': _initialElo,
       'eloHistory': [],
-      'peakElo': _initialElo,
-      'eloRank': _getEloRank(_initialElo),
+      'maxEloRating': _initialElo,
     });
   }
 
@@ -30,25 +27,33 @@ class EloService {
     final userData = userDoc.data()!;
     final currentElo = userData['eloRating'] ?? _initialElo;
 
-    // Get today's focus minutes
     final todayMinutes = await _getTodayFocusMinutes(userId);
+    final expectedMinutes = _getExpectedPerformance(currentElo);
 
-    // Calculate performance score (0 to 1)
-    final performance = (todayMinutes / _focusGoalMinutes).clamp(0.0, 1.5);
+    // Performance is actual minutes vs expected minutes
+    final performance = todayMinutes / expectedMinutes;
 
-    // Calculate expected performance based on current ELO
-    final expectedPerformance = _getExpectedPerformance(currentElo);
+    // Debug logging
+    print('=== ELO Update Debug ===');
+    print('Current ELO: $currentElo');
+    print('Today Minutes: $todayMinutes');
+    print('Expected Minutes: $expectedMinutes');
+    print('Performance Ratio: $performance');
 
     // Calculate new ELO
-    final newElo = _calculateNewElo(
-      currentElo,
-      performance,
-      expectedPerformance,
-    );
+    final newElo = _calculateNewElo(currentElo, performance);
+    final eloDelta = newElo - currentElo;
+    final maxEloRating = max(newElo, userData['maxEloRating'] ?? _initialElo);
+
+    print('New ELO: $newElo');
+    print('ELO Delta: $eloDelta');
+    print('=======================');
 
     // Update user document
     await _firestore.collection('users').doc(userId).update({
       'eloRating': newElo,
+      'eloDelta': eloDelta,
+      'maxEloRating': maxEloRating,
       'eloHistory': FieldValue.arrayUnion([
         {
           'date': Timestamp.now(),
@@ -58,13 +63,10 @@ class EloService {
           'performance': performance,
         },
       ]),
-      'peakElo': max(newElo, userData['peakElo'] ?? _initialElo),
-      'eloRank': _getEloRank(newElo),
       'lastEloUpdate': Timestamp.now(),
     });
 
     // Check for rank achievements
-    await _checkEloAchievements(userId, currentElo, newElo);
   }
 
   // Update ELO after completing a focus session
@@ -82,41 +84,49 @@ class EloService {
     final sessionBonus =
         (sessionMinutes / 25.0 * 5).round(); // 5 points per pomodoro
     final newElo = currentElo + sessionBonus;
+    final maxEloRating = max(newElo, userData['maxEloRating'] ?? _initialElo);
 
     await _firestore.collection('users').doc(userId).update({
       'eloRating': newElo,
-      'peakElo': max(newElo, userData['peakElo'] ?? _initialElo),
-      'eloRank': _getEloRank(newElo),
+      'maxEloRating': maxEloRating,
     });
   }
 
-  // Calculate new ELO rating
-  static int _calculateNewElo(
-    int currentElo,
-    double actualPerformance,
-    double expectedPerformance,
-  ) {
-    final scoreDifference = actualPerformance - expectedPerformance;
-    final eloChange = (_kFactor * scoreDifference).round();
+  static int _calculateNewElo(int currentElo, double performance) {
+    // Performance ratio: 1.0 = met expectations, >1.0 = exceeded, <1.0 = underperformed
+    // Cap performance at 3.0 to prevent extreme swings
+    final cappedPerformance = min(performance, 3.0);
 
-    // Prevent ELO from going below 800
-    return max(800, currentElo + eloChange);
+    // Score difference: -1.0 to +2.0
+    final scoreDifference = cappedPerformance - 1.0;
+
+    // ELO change: -16 to +32
+    final eloChange = (eloDelta * scoreDifference).round();
+
+    return max(0, currentElo + eloChange);
   }
 
-  // Get expected performance based on ELO
+  // Get expected daily focus minutes based on ELO (piecewise function)
   static double _getExpectedPerformance(int elo) {
-    // Higher ELO = higher expectations
-    if (elo < 1000) return 0.3; // 27 minutes expected
-    if (elo < 1200) return 0.5; // 45 minutes expected
-    if (elo < 1400) return 0.7; // 63 minutes expected
-    if (elo < 1600) return 0.9; // 81 minutes expected
-    if (elo < 1800) return 1.0; // 90 minutes expected
-    if (elo < 2000) return 1.1; // 99 minutes expected
-    return 1.2; // 108 minutes expected for elite players
+    if (elo >= 1000 && elo <= 3000) {
+      return -1658.0 + 244.5 * log(elo.toDouble());
+    } else {
+      return 9.14 * pow(1.001165, elo.toDouble());
+    }
   }
 
   // Get today's focus minutes
   static Future<double> _getTodayFocusMinutes(String userId) async {
+    // First try to get from dailyFocusMinutes field
+    final userDoc = await _firestore.collection('users').doc(userId).get();
+    if (userDoc.exists) {
+      final dailyMinutes = userDoc.data()?['dailyFocusMinutes'];
+      if (dailyMinutes != null && dailyMinutes > 0) {
+        return dailyMinutes.toDouble();
+      }
+    }
+
+    // Fallback: calculate from today's sessions
     final today = DateTime.now();
     final startOfDay = DateTime(today.year, today.month, today.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
@@ -131,7 +141,6 @@ class EloService {
               isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
             )
             .where('startTime', isLessThan: Timestamp.fromDate(endOfDay))
-            .where('type', isEqualTo: 'focus')
             .get();
 
     double totalMinutes = 0;
@@ -144,117 +153,63 @@ class EloService {
     return totalMinutes;
   }
 
-  // Get ELO rank based on rating
-  static String _getEloRank(int elo) {
-    if (elo < 1000) return 'Bronze';
-    if (elo < 1200) return 'Silver';
-    if (elo < 1400) return 'Gold';
-    if (elo < 1600) return 'Platinum';
-    if (elo < 1800) return 'Diamond';
-    if (elo < 2000) return 'Master';
-    if (elo < 2200) return 'Grandmaster';
-    return 'Legend';
+  static String getEloRankTitle(int rating) {
+    if (rating < 1000) {
+      return 'Newbie';
+    }
+    if (rating < 1200) {
+      return 'Apprentice';
+    }
+    if (rating < 1500) {
+      return 'Locked-In';
+    }
+    if (rating < 1800) {
+      return 'Scholar';
+    }
+    if (rating < 2100) {
+      return 'Monk';
+    }
+    if (rating < 2400) {
+      return 'Philosopher';
+    }
+    if (rating < 2700) {
+      return 'The Thinker';
+    }
+    if (rating < 3000) {
+      return 'Transcendent';
+    }
+    return 'Enlightened One';
   }
 
-  // Get rank color
-  static Color getEloRankColor(String rank) {
-    switch (rank) {
-      case 'Bronze':
-        return const Color(0xFFCD7F32);
-      case 'Silver':
-        return const Color(0xFFC0C0C0);
-      case 'Gold':
-        return const Color(0xFFFFD700);
-      case 'Platinum':
-        return const Color(0xFFE5E4E2);
-      case 'Diamond':
-        return const Color(0xFFB9F2FF);
-      case 'Master':
-        return const Color(0xFF9370DB);
-      case 'Grandmaster':
-        return const Color(0xFFFF4500);
-      case 'Legend':
-        return const Color(0xFFFF0000);
-      default:
-        return const Color(0xFF808080);
+  static Color getEloRankColor(int rating) {
+    if (rating < 1000) {
+      return Colors.grey;
     }
-  }
-
-  // Get rank icon
-  static String getEloRankIcon(String rank) {
-    switch (rank) {
-      case 'Bronze':
-        return '🥉';
-      case 'Silver':
-        return '🥈';
-      case 'Gold':
-        return '🥇';
-      case 'Platinum':
-        return '💎';
-      case 'Diamond':
-        return '💠';
-      case 'Master':
-        return '👑';
-      case 'Grandmaster':
-        return '🏆';
-      case 'Legend':
-        return '🌟';
-      default:
-        return '📈';
+    if (rating < 1200) {
+      return Colors.green;
     }
+    if (rating < 1500) {
+      return Colors.deepPurple;
+    }
+    if (rating < 1800) {
+      return Colors.indigo;
+    }
+    if (rating < 2100) {
+      return Colors.greenAccent;
+    }
+    if (rating < 2400) {
+      return Colors.orangeAccent;
+    }
+    if (rating < 2700) {
+      return Colors.deepOrange;
+    }
+    if (rating < 3000) {
+      return Colors.pinkAccent;
+    }
+    return Colors.red;
   }
 
   // Check for ELO achievements
-  static Future<void> _checkEloAchievements(
-    String userId,
-    int oldElo,
-    int newElo,
-  ) async {
-    final achievements = <String>[];
-
-    // Check rank promotions
-    final oldRank = _getEloRank(oldElo);
-    final newRank = _getEloRank(newElo);
-
-    if (oldRank != newRank && _isRankHigher(newRank, oldRank)) {
-      achievements.add('rank_${newRank.toLowerCase()}');
-
-      // Special achievement for reaching Legend
-      if (newRank == 'Legend') {
-        achievements.add('legend_status');
-      }
-    }
-
-    // Check milestones
-    final milestones = [1000, 1200, 1400, 1600, 1800, 2000, 2200];
-    for (final milestone in milestones) {
-      if (oldElo < milestone && newElo >= milestone) {
-        achievements.add('elo_$milestone');
-      }
-    }
-
-    // Add achievements to user
-    if (achievements.isNotEmpty) {
-      await _firestore.collection('users').doc(userId).update({
-        'achievements': FieldValue.arrayUnion(achievements),
-      });
-    }
-  }
-
-  // Check if rank1 is higher than rank2
-  static bool _isRankHigher(String rank1, String rank2) {
-    final ranks = [
-      'Bronze',
-      'Silver',
-      'Gold',
-      'Platinum',
-      'Diamond',
-      'Master',
-      'Grandmaster',
-      'Legend',
-    ];
-    return ranks.indexOf(rank1) > ranks.indexOf(rank2);
-  }
 
   // Get ELO leaderboard
   static Stream<List<Map<String, dynamic>>> getEloLeaderboard({

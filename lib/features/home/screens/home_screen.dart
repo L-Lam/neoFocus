@@ -7,15 +7,17 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/elo_service.dart';
 import '../../../core/services/firebase_service.dart';
+import '../../../core/services/user_service.dart';
 import '../../../core/utils/responsive_helper.dart';
 import '../../../widgets/active_session_card.dart';
-import '../../../widgets/app_button.dart';
 import '../../../widgets/loading_indicator.dart';
 import '../../analytics/screens/analytics_screen.dart';
 import '../../analytics/services/analytics_service.dart';
 import '../../focus/screens/focus_timer_screen.dart';
 import '../../gacha/gacha/screens/gacha_screen.dart';
+import '../../settings/screens/settings_screen.dart';
 import '../../social/screens/challenges_screen.dart';
 import '../../social/screens/social_hub_screen.dart';
 
@@ -33,7 +35,7 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        title: Text('Focus Hero', style: AppTextStyles.heading3),
+        title: Text('NeoFocus', style: AppTextStyles.heading3),
         actions: [
           IconButton(
             icon: const Icon(Icons.analytics),
@@ -49,7 +51,10 @@ class HomeScreen extends StatelessWidget {
             icon: const Icon(Icons.settings_outlined),
             color: AppColors.textPrimary,
             onPressed: () {
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
             },
           ),
           IconButton(
@@ -76,16 +81,13 @@ class HomeScreen extends StatelessWidget {
 
           final userData = snapshot.data!.data() as Map<String, dynamic>;
           final displayName = userData['displayName'] ?? 'Hero';
-          final level = userData['level'] ?? 1;
+          final dailyFocusMinutes = userData['dailyFocusMinutes'] ?? 0;
           final totalFocusMinutes = userData['totalFocusMinutes'] ?? 0;
-          final currentStreak = userData['currentStreak'] ?? 0;
-          final longestStreak = userData['longestStreak'] ?? 0;
-          final achievements = List<String>.from(
-            userData['achievements'] ?? [],
-          );
-          final totalXP = userData['totalXP'] ?? 0;
-          final eloRating = userData['eloRating'] ?? 1200;
-          final eloRank = userData['eloRank'] ?? 'Bronze';
+          final coins = userData['coins'] ?? 0;
+          final maxEloRating = userData['maxEloRating'] ?? 0;
+          final eloRating = userData['eloRating'] ?? 0;
+          final eloDelta = userData['eloDelta'] ?? 0;
+          final totalAuraPoints = userData['totalAuraPoints'] ?? 0;
 
           return SingleChildScrollView(
             padding: screenPadding,
@@ -99,7 +101,7 @@ class HomeScreen extends StatelessWidget {
                     // Character Progress Card
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.all(24.w),
+                      padding: EdgeInsets.all(20.w),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
@@ -112,39 +114,34 @@ class HomeScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(
                           AppConstants.largeRadius,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Profile + Name Row
                           Row(
                             children: [
-                              // Character Avatar
                               Container(
-                                width: 80.w,
-                                height: 80.w,
+                                width: 70.w,
+                                height: 70.w,
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.2),
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.3),
+                                    color: EloService.getEloRankColor(
+                                      eloRating,
+                                    ),
                                     width: 3,
                                   ),
                                 ),
                                 child: Center(
                                   child: Text(
-                                    _getLevelEmoji(level),
-                                    style: TextStyle(fontSize: 40.sp),
+                                    "",
+                                    style: TextStyle(fontSize: 38.sp),
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 20.w),
-                              // Character Info
+                              SizedBox(width: 14.w),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,39 +150,21 @@ class HomeScreen extends StatelessWidget {
                                       displayName,
                                       style: AppTextStyles.heading2.copyWith(
                                         color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 26.sp,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                     ),
-                                    SizedBox(height: 4.h),
+                                    SizedBox(height: 2.h),
                                     Text(
-                                      _getLevelTitle(level),
+                                      EloService.getEloRankTitle(eloRating),
                                       style: AppTextStyles.body.copyWith(
-                                        color: Colors.white.withOpacity(0.9),
-                                      ),
-                                    ),
-                                    SizedBox(height: 8.h),
-                                    // Level Progress Bar
-                                    Container(
-                                      height: 8.h,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: FractionallySizedBox(
-                                        alignment: Alignment.centerLeft,
-                                        widthFactor: _getLevelProgress(
-                                          totalFocusMinutes,
-                                          level,
+                                        color: EloService.getEloRankColor(
+                                          eloRating,
                                         ),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                          ),
-                                        ),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 18.sp,
                                       ),
                                     ),
                                   ],
@@ -193,86 +172,201 @@ class HomeScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: 20.h),
-                          // Stats Row
+                          SizedBox(height: 12.h),
+
+                          // Stats Grid
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _buildStatItem(
-                                icon: Icons.grade,
-                                label: 'Level',
-                                value: level.toString(),
-                                color: Colors.white,
+                              Expanded(
+                                child: Container(
+                                  padding: EdgeInsets.all(8.w),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.auto_awesome,
+                                        color: Colors.white.withOpacity(0.9),
+                                        size: 18.sp,
+                                      ),
+                                      SizedBox(height: 4.h),
+                                      Text(
+                                        '$totalAuraPoints',
+                                        style: AppTextStyles.bodySmall.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        'Aura Points',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: Colors.white.withOpacity(0.7),
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                              _buildStatItem(
-                                icon: Icons.star,
-                                label: 'Total XP',
-                                value: totalXP.toString(),
-                                color: Colors.white,
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: Container(
+                                  padding: EdgeInsets.all(8.w),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.timer_outlined,
+                                        color: Colors.white.withOpacity(0.9),
+                                        size: 18.sp,
+                                      ),
+                                      SizedBox(height: 4.h),
+                                      Text(
+                                        _formatMinutes(dailyFocusMinutes),
+                                        style: AppTextStyles.bodySmall.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        'Focus Time',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: Colors.white.withOpacity(0.7),
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                              _buildStatItem(
-                                icon: Icons.timer,
-                                label: 'Focus Time',
-                                value: _formatMinutes(totalFocusMinutes),
-                                color: Colors.white,
-                              ),
-                              _buildStatItem(
-                                icon: Icons.local_fire_department,
-                                label: 'Streak',
-                                value: '$currentStreak',
-                                color: Colors.white,
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: Container(
+                                  padding: EdgeInsets.all(8.w),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.monetization_on,
+                                        color: Colors.amber,
+                                        size: 18.sp,
+                                      ),
+                                      SizedBox(height: 4.h),
+                                      Text(
+                                        '$coins',
+                                        style: AppTextStyles.bodySmall.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        'Coins',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: Colors.white.withOpacity(0.7),
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 16.h),
-                          // ELO Rating Display
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 20.w,
-                              vertical: 10.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
+                          SizedBox(height: 8.h),
+
+                          // ELO Display - 3 boxes
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 4,
+                                child: Container(
+                                  padding: EdgeInsets.all(8.w),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Peak',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: Colors.white.withOpacity(0.7),
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        '$maxEloRating',
+                                        style: AppTextStyles.body.copyWith(
+                                          color: EloService.getEloRankColor(
+                                            maxEloRating,
+                                          ),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _getEloRankIcon(eloRank),
-                                  style: TextStyle(fontSize: 20.sp),
-                                ),
-                                SizedBox(width: 8.w),
-                                Text(
-                                  'ELO: $eloRating',
-                                  style: AppTextStyles.body.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                flex: 5,
+                                child: Container(
+                                  padding: EdgeInsets.all(8.w),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Current ELO',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: Colors.white.withOpacity(0.7),
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        '$eloRating',
+                                        style: AppTextStyles.heading3.copyWith(
+                                          color: EloService.getEloRankColor(
+                                            eloRating,
+                                          ),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                SizedBox(width: 8.w),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12.w,
-                                    vertical: 4.h,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    eloRank,
-                                    style: AppTextStyles.caption.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                flex: 4,
+                                child: Container(
+                                  padding: EdgeInsets.all(8.w),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        eloDelta >= 0
+                                            ? Icons.trending_up
+                                            : Icons.trending_down,
+                                        color:
+                                            eloDelta >= 0
+                                                ? AppColors.success
+                                                : AppColors.error,
+                                        size: 20.sp,
+                                      ),
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        '${eloDelta >= 0 ? '+' : ''}$eloDelta',
+                                        style: AppTextStyles.bodySmall.copyWith(
+                                          color:
+                                              eloDelta >= 0
+                                                  ? AppColors.success
+                                                  : AppColors.error,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -615,7 +709,7 @@ class HomeScreen extends StatelessWidget {
                           child: _buildActionCard(
                             'Buddy Finder',
                             'Make new friends!',
-                            Icons.leaderboard,
+                            Icons.pets,
                             AppColors.error,
                             () {
                               Navigator.push(
@@ -630,20 +724,31 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
 
-                    // Debug button for generating sample data (remove in production)
+                    // Debug buttons (remove in production)
                     if (true) // Set to false in production
                       Padding(
                         padding: EdgeInsets.only(top: 24.h),
-                        child: Center(
-                          child: TextButton(
-                            onPressed: () => _generateSampleData(),
-                            child: Text(
-                              'Generate Sample Data (Debug)',
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.primary,
+                        child: Column(
+                          children: [
+                            TextButton(
+                              onPressed: () => _generateSampleData(),
+                              child: Text(
+                                'Generate Sample Data (Debug)',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.primary,
+                                ),
                               ),
                             ),
-                          ),
+                            TextButton(
+                              onPressed: () => _runDailyReset(context),
+                              child: Text(
+                                'Run Daily Reset (Debug)',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.warning,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                   ],
@@ -792,55 +897,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  String _getLevelTitle(int level) {
-    if (level >= 100) return 'Enlightened';
-    if (level >= 75) return 'Master';
-    if (level >= 50) return 'Expert';
-    if (level >= 25) return 'Adept';
-    if (level >= 10) return 'Apprentice';
-    if (level >= 5) return 'Novice';
-    return 'Newbie';
-  }
-
-  String _getLevelEmoji(int level) {
-    if (level >= 100) return '🧘';
-    if (level >= 75) return '🎯';
-    if (level >= 50) return '⚡';
-    if (level >= 25) return '🔥';
-    if (level >= 10) return '💪';
-    if (level >= 5) return '🌟';
-    return '🌱';
-  }
-
-  String _getEloRankIcon(String rank) {
-    switch (rank) {
-      case 'Bronze':
-        return '🥉';
-      case 'Silver':
-        return '🥈';
-      case 'Gold':
-        return '🥇';
-      case 'Platinum':
-        return '💎';
-      case 'Diamond':
-        return '💠';
-      case 'Master':
-        return '👑';
-      case 'Grandmaster':
-        return '🏆';
-      case 'Legend':
-        return '🌟';
-      default:
-        return '📈';
-    }
-  }
-
-  double _getLevelProgress(int totalMinutes, int currentLevel) {
-    final minutesPerLevel = 300; // 5 hours per level
-    final currentLevelMinutes = totalMinutes % minutesPerLevel;
-    return currentLevelMinutes / minutesPerLevel;
-  }
-
   String _formatMinutes(int minutes) {
     if (minutes < 60) {
       return '${minutes}m';
@@ -848,6 +904,32 @@ class HomeScreen extends StatelessWidget {
       final hours = minutes ~/ 60;
       final mins = minutes % 60;
       return mins > 0 ? '${hours}h ${mins}m' : '${hours}h';
+    }
+  }
+
+  // Run daily reset immediately (debug)
+  Future<void> _runDailyReset(BuildContext context) async {
+    final userId = FirebaseService.auth.currentUser?.uid;
+    if (userId == null) return;
+
+    try {
+      // Run daily ELO update
+      await EloService.updateDailyElo(userId);
+
+      // Reset daily focus minutes
+      await FirebaseService.currentUserDoc?.update({'dailyFocusMinutes': 0});
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Daily reset completed!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -886,11 +968,9 @@ class HomeScreen extends StatelessWidget {
 
     // Update user stats
     await FirebaseService.currentUserDoc!.update({
-      'totalFocusMinutes': 2850,
-      'currentStreak': 7,
-      'longestStreak': 15,
-      'level': 5,
-      'achievements': ['first_session', 'week_streak'],
+      'dailyFocusMinutes': 180,
+      'coins': 999999,
+      'eloRating': 1180,
     });
   }
 }

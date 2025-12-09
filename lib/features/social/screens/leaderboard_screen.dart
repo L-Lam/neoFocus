@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/elo_service.dart';
 import '../../../widgets/loading_indicator.dart';
 import '../services/social_service.dart';
 import '../models/friend_model.dart';
@@ -103,23 +104,22 @@ class _GlobalLeaderboardTab extends StatelessWidget {
                   ),
                 ),
                 subtitle: Text(
-                  'Level ${user.level} • ${user.currentStreak} day streak',
-                  style: AppTextStyles.caption,
+                  EloService.getEloRankTitle(user.eloRating),
+                  style: AppTextStyles.caption.copyWith(
+                    color: EloService.getEloRankColor(user.eloRating),
+                  ),
                 ),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${user.totalFocusMinutes}',
+                      '${user.eloRating}',
                       style: AppTextStyles.heading3.copyWith(
-                        color:
-                            isCurrentUser
-                                ? AppColors.primary
-                                : AppColors.textPrimary,
+                        color: EloService.getEloRankColor(user.eloRating),
                       ),
                     ),
-                    Text('minutes', style: AppTextStyles.caption),
+                    Text('ELO', style: AppTextStyles.caption),
                   ],
                 ),
               ),
@@ -197,18 +197,22 @@ class _FriendsLeaderboardTab extends StatelessWidget {
                   ),
                 ),
                 subtitle: Text(
-                  'Level ${friend.level} • ${friend.currentStreak} day streak',
-                  style: AppTextStyles.caption,
+                  EloService.getEloRankTitle(friend.eloRating),
+                  style: AppTextStyles.caption.copyWith(
+                    color: EloService.getEloRankColor(friend.eloRating),
+                  ),
                 ),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${friend.totalFocusMinutes}',
-                      style: AppTextStyles.heading3,
+                      '${friend.eloRating}',
+                      style: AppTextStyles.heading3.copyWith(
+                        color: EloService.getEloRankColor(friend.eloRating),
+                      ),
                     ),
-                    Text('minutes', style: AppTextStyles.caption),
+                    Text('ELO', style: AppTextStyles.caption),
                   ],
                 ),
               ),

@@ -44,6 +44,15 @@ class AuthService extends ChangeNotifier {
     required String password,
     required String displayName,
   }) async {
+    // Validate username length
+    if (displayName.length > 12) {
+      return 'Username must be 12 characters or less.';
+    }
+
+    if (displayName.isEmpty) {
+      return 'Username cannot be empty.';
+    }
+
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -70,9 +79,8 @@ class AuthService extends ChangeNotifier {
           'currentStreak': 0,
           'longestStreak': 0,
           'achievements': [],
-          'eloRating': 1200,
-          'eloRank': 'Bronze',
-          'peakElo': 1200,
+          'eloRating': 1000,
+          'peakElo': 1000,
           'eloHistory': [],
           'lastEloUpdate': FieldValue.serverTimestamp(),
           'preferences': {

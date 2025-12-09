@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../models/focus_session.dart';
-import '../models/user_level.dart';
 import 'firebase_service.dart';
 import 'notification_service.dart';
 
@@ -87,18 +86,11 @@ class RewardService {
       final newLongestStreak =
           newStreak > longestStreak ? newStreak : longestStreak;
 
-      // Check for level up
-      final oldLevel = UserLevel.getUserLevel(currentTotalMinutes);
-      final newLevel = UserLevel.getUserLevel(newTotalMinutes);
-      final leveledUp = newLevel.level > oldLevel.level;
 
       // Update user document
       await userDoc.update({
         'totalFocusMinutes': newTotalMinutes,
-        'currentStreak': newStreak,
-        'longestStreak': newLongestStreak,
         'lastSessionDate': Timestamp.fromDate(today),
-        'level': newLevel.level,
         'lastUpdated': FieldValue.serverTimestamp(),
         // Store latest focus score if available
         if (focusScore != null) 'lastFocusScore': focusScore,
@@ -115,13 +107,6 @@ class RewardService {
 
       if (newStreak > 1 && newStreak % 7 == 0) {
         await NotificationService.showStreakNotification(newStreak);
-      }
-
-      if (leveledUp) {
-        await NotificationService.showLevelUpNotification(
-          newTitle: newLevel.title,
-          newLevel: newLevel.level,
-        );
       }
     }
   }

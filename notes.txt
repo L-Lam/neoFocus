@@ -1,0 +1,7 @@
+Errors shown without:
+
+reward_service.dart
+session_stats_screen.dart
+focus_stats_card.dart
+profile_screen.dart // might need a full revamp
+
