@@ -5,6 +5,7 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../buddy/models/buddy.dart';
 import '../../buddy/data/buddies_data.dart';
 import '../../buddy/widgets/buddy_card_widget.dart';
+import '../../buddy/screens/buddy_detail_screen.dart';
 import '../services/gacha_service.dart';
 
 class DropRatesScreen extends StatefulWidget {
@@ -34,8 +35,7 @@ class _DropRatesScreenState extends State<DropRatesScreen> {
     final buddies =
         allBuddies
             .where(
-              (b) =>
-                  b.rarity == rarity && b.source.contains(BuddySource.gacha),
+              (b) => b.rarity == rarity && b.source.contains(BuddySource.gacha),
             )
             .toList();
     // Sort by ID (handle both numeric and old string IDs)
@@ -163,7 +163,17 @@ class _DropRatesScreenState extends State<DropRatesScreen> {
             return BuddyCardWidget(
               buddy: buddy,
               isUnlocked: isUnlocked,
-              onTap: null, // Non-clickable in rates screen
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => BuddyDetailScreen(
+                          buddy: buddy,
+                        ),
+                  ),
+                );
+              },
             );
           },
         ),

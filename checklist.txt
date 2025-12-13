@@ -110,17 +110,17 @@ Total Files: 102
 
 ## widgets
 
-- [ ] lib\features\gacha\buddy\widgets\buddy_card_widget.dart
+- [x] lib\features\gacha\buddy\widgets\buddy_card_widget.dart
 
 ## screens
 
-- [ ] lib\features\gacha\gacha\screens\droprates_screen.dart
-- [ ] lib\features\gacha\gacha\screens\gacha_screen.dart
-- [ ] lib\features\gacha\gacha\screens\store_screen.dart
+- [x] lib\features\gacha\gacha\screens\droprates_screen.dart
+- [x] lib\features\gacha\gacha\screens\gacha_screen.dart
+- [x] lib\features\gacha\gacha\screens\store_screen.dart
 
 ## services
 
-- [ ] lib\features\gacha\gacha\services\gacha_service.dart
+- [x] lib\features\gacha\gacha\services\gacha_service.dart
 
 ## screens
 

@@ -4,20 +4,64 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../models/buddy.dart';
+import '../../gacha/services/gacha_service.dart';
 
-class BuddyDetailScreen extends StatelessWidget {
+class BuddyDetailScreen extends StatefulWidget {
   final Buddy buddy;
 
   const BuddyDetailScreen({super.key, required this.buddy});
 
   @override
+  State<BuddyDetailScreen> createState() => _BuddyDetailScreenState();
+}
+
+class _BuddyDetailScreenState extends State<BuddyDetailScreen> {
+  bool _isUnlocked = true; // Default to true
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkOwnership();
+  }
+
+  Future<void> _checkOwnership() async {
+    final inventory = await GachaService.getInventory().first;
+    final owned = inventory.any((b) => b.id == widget.buddy.id);
+    setState(() {
+      _isUnlocked = owned;
+      _isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            color: AppColors.textPrimary,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final buddy = _isUnlocked ? widget.buddy : widget.buddy;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        title: Text(buddy.name, style: AppTextStyles.heading3),
+        title: Text(
+          _isUnlocked ? buddy.name : '?',
+          style: AppTextStyles.heading3,
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           color: AppColors.textPrimary,
@@ -46,20 +90,27 @@ class BuddyDetailScreen extends StatelessWidget {
                 border: Border.all(color: buddy.getRarityColor(), width: 3),
               ),
               clipBehavior: Clip.hardEdge,
-              child: Transform.translate(
-                offset: const Offset(0, 25),
-                child: Image.asset(
-                  buddy.image,
-                  fit: BoxFit.contain,
-                  height: 480.w,
-                ),
-              ),
+              child:
+                  _isUnlocked
+                      ? Image.asset(
+                        buddy.image,
+                        fit: BoxFit.contain,
+                        height: 480.w,
+                      )
+                      : Center(
+                        child: Text(
+                          "?",
+                          style: AppTextStyles.heading3.copyWith(
+                            fontSize: 160,
+                          )
+                        ),
+                      ),
             ),
             SizedBox(height: 24.h),
 
             // Name
             Text(
-              buddy.name,
+              _isUnlocked ? buddy.name : '?',
               style: AppTextStyles.heading1,
               textAlign: TextAlign.center,
             ),
@@ -95,7 +146,7 @@ class BuddyDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Where to Find',
+                    'Where to find me!',
                     style: AppTextStyles.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -122,12 +173,12 @@ class BuddyDetailScreen extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                                'Gacha',
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: buddy.getRarityColor(),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                            'Gacha',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: buddy.getRarityColor(),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       if (buddy.source.contains(BuddySource.gacha) &&
                           buddy.source.contains(BuddySource.shop))
@@ -150,7 +201,7 @@ class BuddyDetailScreen extends StatelessWidget {
                               width: 1,
                             ),
                           ),
-                          child:                               Text(
+                          child: Text(
                             'Store',
                             style: AppTextStyles.bodySmall.copyWith(
                               color: buddy.getRarityColor(),
@@ -181,7 +232,10 @@ class BuddyDetailScreen extends StatelessWidget {
                     style: AppTextStyles.bodySmall.copyWith(),
                   ),
                   SizedBox(height: 8.h),
-                  Text(buddy.description, style: AppTextStyles.body),
+                  Text(
+                    _isUnlocked ? buddy.description : '?',
+                    style: AppTextStyles.body,
+                  ),
                 ],
               ),
             ),
@@ -208,7 +262,7 @@ class BuddyDetailScreen extends StatelessWidget {
                           children: [
                             const TextSpan(text: 'You found me '),
                             TextSpan(
-                              text: '${buddy.duplicate}',
+                              text: _isUnlocked ? '${buddy.duplicate}' : '0',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
@@ -246,7 +300,9 @@ class BuddyDetailScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${buddy.auraPoints}/${buddy.getMaxPossibleAura()}',
+                        _isUnlocked
+                            ? '${buddy.auraPoints}/${buddy.getMaxPossibleAura()}'
+                            : '0/${buddy.getMaxPossibleAura()}',
                         style: AppTextStyles.bodySmall.copyWith(
                           color: buddy.getRarityColor(),
                           fontWeight: FontWeight.w600,
@@ -259,7 +315,10 @@ class BuddyDetailScreen extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
-                      value: buddy.auraPoints / buddy.getMaxPossibleAura(),
+                      value:
+                          _isUnlocked
+                              ? buddy.auraPoints / buddy.getMaxPossibleAura()
+                              : 0,
                       backgroundColor: AppColors.divider,
                       color: buddy.getRarityColor(),
                       minHeight: 8.h,

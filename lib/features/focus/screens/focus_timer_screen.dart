@@ -20,12 +20,9 @@ class FocusTimerScreen extends StatefulWidget {
   State<FocusTimerScreen> createState() => _FocusTimerScreenState();
 }
 
-class _FocusTimerScreenState extends State<FocusTimerScreen>
-    with TickerProviderStateMixin {
+class _FocusTimerScreenState extends State<FocusTimerScreen> {
   late FocusSessionService _sessionService;
   late UserService _userService;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   // Timer settings
   int _focusDuration = 25;
@@ -43,18 +40,6 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
 
     // Listen for session completion to update ELO
     //  _sessionService.addListener(_handleSessionUpdate);
-
-    // Initialize animations
-    _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-
-    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-
-    _pulseController.repeat(reverse: true);
   }
 
   // void _handleSessionUpdate() async {
@@ -222,58 +207,50 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
       );
     } else {
       // Ready to start display
-      return AnimatedBuilder(
-        animation: _pulseAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _pulseAnimation.value,
-            child: Container(
-              width: 280.w,
-              height: 280.w,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary.withOpacity(0.1),
-                    AppColors.primaryLight.withOpacity(0.05),
-                  ],
-                ),
-                border: Border.all(
-                  color: AppColors.primary.withOpacity(0.3),
-                  width: 4,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.play_circle_outline,
-                    size: 64.sp,
-                    color: AppColors.primary,
-                  ),
-                  SizedBox(height: 16.h),
-                  Text(
-                    _formatTime(_focusDuration * 60),
-                    style: TextStyle(
-                      fontSize: 48.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'Ready to Focus',
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+      return Container(
+        width: 280.w,
+        height: 280.w,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primary.withOpacity(0.1),
+              AppColors.primaryLight.withOpacity(0.05),
+            ],
+          ),
+          border: Border.all(
+            color: AppColors.primary.withOpacity(0.3),
+            width: 4,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.play_circle_outline,
+              size: 64.sp,
+              color: AppColors.primary,
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              _formatTime(_focusDuration * 60),
+              style: TextStyle(
+                fontSize: 48.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+                fontFamily: 'monospace',
               ),
             ),
-          );
-        },
+            SizedBox(height: 8.h),
+            Text(
+              'Ready to Focus',
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       );
     }
   }

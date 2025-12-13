@@ -224,7 +224,7 @@ class _StoreScreenState extends State<StoreScreen> {
   int _getBuddyCost(Buddy buddy) {
     switch (buddy.rarity) {
       case BuddyRarity.common:
-        return 0;
+        return 100;
       case BuddyRarity.rare:
         return 1000;
       case BuddyRarity.exotic:
@@ -280,7 +280,7 @@ class _StoreScreenState extends State<StoreScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12.w,
                 mainAxisSpacing: 12.h,
-                childAspectRatio: 0.65,
+                childAspectRatio: 0.85,
               ),
               itemCount: commonBuddies.length,
               itemBuilder: (context, index) {
@@ -300,7 +300,7 @@ class _StoreScreenState extends State<StoreScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12.w,
                 mainAxisSpacing: 12.h,
-                childAspectRatio: 0.65,
+                childAspectRatio: 0.85,
               ),
               itemCount: rareBuddies.length,
               itemBuilder: (context, index) {
@@ -340,7 +340,7 @@ class _StoreScreenState extends State<StoreScreen> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 12.w,
                   mainAxisSpacing: 12.h,
-                  childAspectRatio: 0.65,
+                  childAspectRatio: 0.85,
                 ),
                 itemCount: 1,
                 itemBuilder: (context, index) {
@@ -369,114 +369,103 @@ class _StoreScreenState extends State<StoreScreen> {
   Widget _buildBuddyCard(Buddy buddy) {
     final cost = _getBuddyCost(buddy);
 
-    return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder:
-              (context) => Dialog(
-                backgroundColor: AppColors.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(24.w),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        height: 250.h,
-                        child: BuddyCardWidget(buddy: buddy, isUnlocked: true),
-                      ),
-                      SizedBox(height: 16.h),
-                      Text(
-                        buddy.description,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 16.h),
-                      Row(
+    return Column(
+      children: [
+        Expanded(child: BuddyCardWidget(buddy: buddy, isUnlocked: true)),
+        SizedBox(height: 8.h),
+        ElevatedButton(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder:
+                  (context) => Dialog(
+                    backgroundColor: AppColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(24.w),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text(
-                                'Cancel',
-                                style: AppTextStyles.body.copyWith(
-                                  color: AppColors.textHint,
-                                ),
-                              ),
-                            ),
+                          Text(
+                            'Purchase Confirmation',
+                            style: AppTextStyles.heading3,
+                            textAlign: TextAlign.center,
                           ),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                _purchaseBuddy(buddy, cost);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: buddy.getRarityColor(),
-                                padding: EdgeInsets.symmetric(vertical: 12.h),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    AppConstants.defaultRadius,
+                          SizedBox(height: 8.h),
+                          Text(
+                            'Are you sure you want to purchase "${buddy.name}"?'
+                                '\n\nIt\'ll cost you $cost coins.',
+                            style: AppTextStyles.body.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 24.h),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text(
+                                    'Cancel',
+                                    style: AppTextStyles.body.copyWith(
+                                      color: AppColors.textHint,
+                                    ),
                                   ),
                                 ),
                               ),
-                              child: Text(
-                                'Buy $cost',
-                                style: AppTextStyles.body.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    _purchaseBuddy(buddy, cost);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: buddy.getRarityColor(),
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 12.h,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        AppConstants.defaultRadius,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Purchase',
+                                    style: AppTextStyles.body.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-        );
-      },
-      child: Column(
-        children: [
-          Expanded(
-            child: BuddyCardWidget(
-              buddy: buddy,
-              isUnlocked: true,
-              onTap: () {
-                // Tap handled by GestureDetector above
-              },
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            minimumSize: Size(double.infinity, 36.h),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppConstants.defaultRadius),
             ),
           ),
-          SizedBox(height: 8.h),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$cost Coins',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                SizedBox(width: 4.w),
-              ],
+          child: Text(
+            '$cost Coins',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

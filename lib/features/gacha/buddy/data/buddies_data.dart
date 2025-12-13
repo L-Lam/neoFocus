@@ -106,7 +106,7 @@ final List<Buddy> allBuddies = [
         'Bobbby has found its passion in Neo-Romanticism art! Bobby is trying to '
         'learn more about the golden ratio NOT to win a cross-country race on '
         'horseback or regain the ability to walk, but to create more visually '
-        'appealing artworks',
+        'appealing artworks.',
     image: 'assets/bobbys/FibonacciBobby.png',
   ),
 

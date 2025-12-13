@@ -245,10 +245,10 @@ class _GachaScreenState extends State<GachaScreen> {
           children: [
             // Pity Counter Bar
             FutureBuilder<int>(
-              future: GachaService.getPityCounter(),
+              future: GachaService.getPity(),
               builder: (context, snapshot) {
                 final pityCounter = snapshot.data ?? 0;
-                final progress = pityCounter / 72.0;
+                final progress = pityCounter / GachaService.pity;
 
                 return Container(
                   padding: EdgeInsets.all(16.w),
@@ -275,7 +275,7 @@ class _GachaScreenState extends State<GachaScreen> {
                             ),
                           ),
                           Text(
-                            '$pityCounter / 72',
+                            '$pityCounter / ${GachaService.pity}',
                             style: AppTextStyles.body.copyWith(
                               color: AppColors.warning,
                               fontWeight: FontWeight.w600,
