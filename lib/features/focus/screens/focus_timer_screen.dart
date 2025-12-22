@@ -11,6 +11,7 @@ import '../../../core/services/focus_session_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../core/utils/responsive_helper.dart';
 import '../../../widgets/app_button.dart';
+import '../widgets/pomodoro_animation_widget.dart';
 
 class FocusTimerScreen extends StatefulWidget {
   const FocusTimerScreen({super.key});
@@ -151,24 +152,11 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
 
   Widget _buildBobbyArea(FocusSession? currentSession) {
     final containerHeight = 180.h;
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: containerHeight,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: _AnimatedBobby(
-        containerHeight: containerHeight,
+      child: PomodoroAnimationWidget(
         isSessionActive:
-            currentSession != null &&
             Provider.of<FocusSessionService>(
               context,
               listen: false,
@@ -464,159 +452,6 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
               ),
             ],
           ),
-    );
-  }
-}
-
-// Animated Bobby Widget
-class _AnimatedBobby extends StatefulWidget {
-  final double containerHeight;
-  final bool isSessionActive;
-
-  const _AnimatedBobby({
-    required this.containerHeight,
-    required this.isSessionActive,
-  });
-
-  @override
-  State<_AnimatedBobby> createState() => _AnimatedBobbyState();
-}
-
-class _AnimatedBobbyState extends State<_AnimatedBobby>
-    with SingleTickerProviderStateMixin {
-  Timer? _movementTimer;
-  late AnimationController _flipController;
-
-  final speed = 0.2; // units per second
-
-  double startPosition = 0.5;
-  double currentPosition = 0.5;
-  double targetPosition = 1;
-  double cycleDuration = 0;
-  double cycleStartTime = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _flipController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _startMovement();
-
-    // Only set initial target if session is active
-    if (widget.isSessionActive) {
-      setTarget(0);
-    }
-  }
-
-  void _startMovement() {
-    _movementTimer = Timer.periodic(const Duration(milliseconds: 50), (_) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
-  }
-
-  void flipAnimation() {
-    _flipController.forward(from: 0);
-  }
-
-  void setTarget(double currentTime) {
-    final random = Random();
-
-    cycleStartTime = currentTime;
-
-    // cycle duration: 5-12 seconds
-    cycleDuration = 5.0 + random.nextDouble() * 8.0;
-
-    // Pick random target in opposite direction
-    if (startPosition > targetPosition) {
-      targetPosition =
-          startPosition + random.nextDouble() * (1.0 - startPosition);
-    } else {
-      targetPosition = random.nextDouble() * startPosition;
-    }
-    startPosition = currentPosition;
-
-    // Start flip animation
-    flipAnimation();
-  }
-
-  @override
-  void dispose() {
-    _movementTimer?.cancel();
-    _flipController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final time = DateTime.now().millisecondsSinceEpoch / 1000.0;
-    final bobbySize = 80.0.w;
-    final scaleConstant = 1.sw - bobbySize - 25;
-
-    final y = (widget.containerHeight + bobbySize) / 3;
-
-    final distance = (targetPosition - startPosition).abs();
-    final walkTime = distance / speed;
-
-    if (widget.isSessionActive) {
-      // base case: Bobby has reached his location already
-      currentPosition = targetPosition;
-      if (time >= cycleStartTime + cycleDuration) {
-        // cycle time reset, new destination
-        setTarget(time);
-      } else if (time < cycleStartTime + walkTime) {
-        // if the elapsed time is less than walking time, must mean that Bobby
-        // still has not reached destination, so we move it accordingly
-        double progress = (time - cycleStartTime) / walkTime;
-        currentPosition =
-            (startPosition + (targetPosition - startPosition) * progress);
-      }
-    } else {
-      // set targetPosition to currentPosition to reset after pause
-      targetPosition = currentPosition;
-    }
-
-    // Rotation animation always plays
-    final rotation = ((time.toInt() % 2 == 0) ? 12.0 : -12.0) * (pi / 360);
-
-    // Flip animation: compress to 0, flip, expand back to 1
-    final flipProgress = _flipController.value;
-    double horizontalScale;
-    double scaleX;
-
-    if (flipProgress < 0.5) {
-      // First half: compress from 1.0 to 0
-      horizontalScale = 1.0 - (flipProgress * 2);
-      scaleX = startPosition < targetPosition ? -1.0 : 1.0; // Old direction
-    } else {
-      // Second half: expand from 0 to 1.0
-      horizontalScale = (flipProgress - 0.5) * 2;
-      scaleX = startPosition < targetPosition ? 1.0 : -1.0; // New direction (flipped)
-    }
-
-    return Stack(
-      children: [
-        Positioned(
-          left: currentPosition * scaleConstant,
-          top: y,
-          child: Transform(
-            alignment: Alignment.center,
-            transform:
-                Matrix4.identity()
-                  ..rotateZ(rotation)
-                  ..scale(scaleX * horizontalScale, 1.0),
-            child: Image.asset(
-              'assets/bobbys/Bobby.png',
-              width: bobbySize,
-              height: bobbySize,
-              fit: BoxFit.contain,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
